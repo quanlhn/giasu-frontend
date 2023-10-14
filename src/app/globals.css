@@ -25,3 +25,38 @@ body {
     )
     rgb(var(--background-start-rgb));
 } */
+
+/* body::after {
+  display: block;
+  height: 150px;
+  padding-bottom: ;
+} */
+
+.overlay {
+  background: rgb(139,243,255);
+  background: linear-gradient(0deg, rgba(139,243,255,1) 0%, rgba(210,230,228,1) 94%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 0 0;
+  color: #ffffff;
+  border-radius: 1rem
+}
+
+.log-button {
+  border-radius: 20px;
+  border: 1px solid rgb(139,243,255);
+  background: rgb(139,243,255);
+  background: linear-gradient(0deg, rgba(139,243,255,1) 0%, rgba(210,230,228,1) 94%);
+  color: rgb(15 118 110 / var(--tw-text-opacity));
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 45px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+}
+
+.log-button.ghost {
+  background-color: transparent;
+  border-color: rgb(15 118 110 / var(--tw-text-opacity));
+}
