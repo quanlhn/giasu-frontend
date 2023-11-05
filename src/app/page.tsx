@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button, { ButtonPropsColorOverrides } from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import StarIcon from '@mui/icons-material/Star';
@@ -12,59 +12,117 @@ import Link from 'next/link';
 import MarkUnreadChatAltOutlinedIcon from '@mui/icons-material/MarkUnreadChatAltOutlined';
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
-// import {
-//   createTheme,
-//   PaletteColorOptions,
-//   ThemeProvider,
-// } from '@mui/material/styles';
-// import { Stack } from '@mui/material';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
+import '@splidejs/react-splide/css';
 
-// declare module '@mui/material/styles' {
-//   interface CustomPalette {
-//     anger: PaletteColorOptions;
-//     apple: PaletteColorOptions;
-//     steelBlue: PaletteColorOptions;
-//     violet: PaletteColorOptions;
-//   }
-//   interface Palette extends CustomPalette {}
-//   interface PaletteOptions extends CustomPalette {}
-// }
+import TutorType from './CustomInterface';
+import { Result } from 'postcss';
 
-// declare module '@mui/material/Button' {
-//   interface ButtonPropsColorOverrides {
-//     anger: true;
-//     apple: true;
-//     steelBlue: true;
-//     violet: true;
-//   }
-// }
+export const API_PATH = 'http://localhost:3000/api/'
 
-// const { palette } = createTheme();
-// const { augmentColor } = palette;
-// const createColor = (mainColor: any) => augmentColor({ color: { main: mainColor } });
-// const theme = createTheme({
-//   palette: {
-//     anger: createColor('#F40B27'),
-//     apple: createColor('#FD661F'),
-//     steelBlue: createColor('#5C76B7'),
-//     violet: createColor('#BC00A3'),
-//   },
-// });
+
 
 
 export default function Home() {
 
   const [tags, setTags] = useState('all')
+  const [tutors, setTutors] = useState<Array<TutorType>>()
+  const [tutorsSubjects, setTutorsSubjects] = useState<Array<Array<any>>>([])
   const handleChange = (event: React.MouseEvent<HTMLElement>, value: string) => {
     setTags(value)
     
   }
 
+  const defaultTutor = {
+    userID: 0,
+    name: '',
+    phone: '',
+    school: '',
+    specialized: '',
+    job: '',
+    expTeach: 0,
+    subjects: [{}],
+
+    skillRange: [''],
+    schedule: [''],
+    description: '',
+    status: '',
+    role: '',
+    gender: '',
+    birth: '',
+    address: '', 
+    avatar: ''
+  }
+
+  useEffect(() => {
+    const allTutors = new Array<TutorType>()
+
+    fetch(API_PATH + 'tutor/get-confirmed-tutors')
+    .then(res => res.json())
+    .then(data => {
+      data.tutors.forEach((result: any) => {
+          // t_statusChange.push({userID: result.userID, status: result.status})
+          // console.log(typeof result.birth)
+          
+          let subjects = new Array()
+          // console.log(subjects)
+          const newTutor = {
+            userID: result.userID,
+            name: result.name,
+            phone: result.phone,
+            school: result.school,
+            specialized: result.specialized,
+            job: result.job,
+            expTeach: result.expTeach,
+            subjectIds: result.subjectIds,
+            subjects,
+            skillRange: result.skillRange.split(','),
+            schedule: result.schedule.split(','),
+            description: result.description,
+            status: result.status,
+            role: result.role,
+            gender: result.gender,
+            birth: !result.birth ? '' : result.birth.slice(0, 10),
+            address: result.address, 
+            avatar: result.avatar
+          }
+          allTutors.push(newTutor)
+      })
+      // console.log(allTutors)
+      setTutors(() => allTutors)
+    })
+  }, [])
+
+  useEffect(() => {
+    const subjects: any[] = []
+    tutors?.forEach((result) => {
+      fetch(API_PATH + 'tutor/getSubjectsOfTutors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: result.subjectIds
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const c_subjects = data.subject.map((s: any) => {
+            return {id: s.id ,tutorId: result.userID, name: s.name, grade: s.grade}
+          })
+          const count = subjects.push(c_subjects)
+          if (subjects.length == tutors.length) {
+            setTutorsSubjects(subjects)
+          }
+        })
+    })
+  }, [tutors])
+
   return (
-    <div className=''>
+    <div className='mt-[-12px]'>
       <div className='h-[30rem] px-12 pt-6 bg-headerbg flex justify-between rounded-b-3xl'>
         <div className='w-[75%]'>
-          <div className='text-teal-700 text-4xl  font-bold leading-[75px] pt-16 ml-10 '>
+          <div className='text-teal-700 text-5xl  font-bold leading-[75px] pt-10 ml-10 '>
             Uy tín - Tận tâm - Chuyên nghiệp <br /> Giáo dục tiến bộ,<br /> Hướng tới tương lai
           </div>
           <div className='m-10 flex items-center'>
@@ -117,55 +175,28 @@ export default function Home() {
             </div> */}
           </ToggleButtonGroup>
         </div>
-        <div className="cards w-full flex gap-[6.6%] pt-14">
-          <div className="card w-[20%] h-[30rem] shadow-2xl rounded-xl p-3 flex flex-col items-center relative">
-            <img src="giasu1.jpg" alt="" className='w-full h-48 rounded-lg'/>
-            <div className='max-w-[75%] text-lg font-semibold text-teal-700 bg-slate-200 px-3 py-1 mt-[-10px] text-center rounded-full '>Điêu Thị Thuyền</div>
-            <div className='pt-4 w-full text-left italic'>Sinh viên</div>
-            <div className='w-full text-left italic'>ĐH Công nghệ - ĐHQGHN</div>
-            <div className='w-full text-left font-medium text-teal-900'>Gia sư Toán / Tiếng Anh / Ôn thi HSG</div>
-            <div className='w-full text-justify'>Đã có kinh nghiệm dạy học sinh cấp 2, cấp 3. Ôn thi HSG cho học sinh đạt giải xuất sắc</div>
-            <div className='w-full flex justify-between absolute bottom-2 px-3'>
-              <div className='italic text-slate-500'>Đã dạy: 8 lớp</div>
-              <Link className='text-teal-700 italic' href={'/'}>Chi tiết &gt;&gt;&gt;</Link>
-            </div>
-          </div>
-          <div className="card w-[20%] h-[30rem] shadow-2xl rounded-xl p-3 flex flex-col items-center relative">
-            <img src="giasu1.jpg" alt="" className='w-full h-48 rounded-lg'/>
-            <div className='max-w-[75%] text-lg font-semibold text-teal-700 bg-slate-200 px-3 py-1 mt-[-10px] text-center rounded-full '>Điêu Thị Thuyền</div>
-            <div className='pt-4 w-full text-left italic'>Sinh viên</div>
-            <div className='w-full text-left italic'>ĐH Công nghệ - ĐHQGHN</div>
-            <div className='w-full text-left font-medium text-teal-900'>Gia sư Toán / Tiếng Anh / Ôn thi HSG</div>
-            <div className='w-full text-justify'>Đã có kinh nghiệm dạy học sinh cấp 2, cấp 3. Ôn thi HSG cho học sinh đạt giải xuất sắc</div>
-            <div className='w-full flex justify-between absolute bottom-2 px-3'>
-              <div className='italic text-slate-500'>Đã dạy: 8 lớp</div>
-              <Link className='text-teal-700 italic' href={'/'}>Chi tiết &gt;&gt;&gt;</Link>
-            </div>
-          </div>
-          <div className="card w-[20%] h-[30rem] shadow-2xl rounded-xl p-3 flex flex-col items-center relative">
-            <img src="giasu1.jpg" alt="" className='w-full h-48 rounded-lg'/>
-            <div className='max-w-[75%] text-lg font-semibold text-teal-700 bg-slate-200 px-3 py-1 mt-[-10px] text-center rounded-full '>Điêu Thị Thuyền</div>
-            <div className='pt-4 w-full text-left italic'>Sinh viên</div>
-            <div className='w-full text-left italic'>ĐH Công nghệ - ĐHQGHN</div>
-            <div className='w-full text-left font-medium text-teal-900'>Gia sư Toán / Tiếng Anh / Ôn thi HSG</div>
-            <div className='w-full text-justify'>Đã có kinh nghiệm dạy học sinh cấp 2, cấp 3. Ôn thi HSG cho học sinh đạt giải xuất sắc</div>
-            <div className='w-full flex justify-between absolute bottom-2 px-3'>
-              <div className='italic text-slate-500'>Đã dạy: 8 lớp</div>
-              <Link className='text-teal-700 italic' href={'/'}>Chi tiết &gt;&gt;&gt;</Link>
-            </div>
-          </div>
-          <div className="card w-[20%] h-[30rem] shadow-2xl rounded-xl p-3 flex flex-col items-center relative">
-            <img src="giasu1.jpg" alt="" className='w-full h-48 rounded-lg'/>
-            <div className='max-w-[75%] text-lg font-semibold text-teal-700 bg-slate-200 px-3 py-1 mt-[-10px] text-center rounded-full '>Điêu Thị Thuyền</div>
-            <div className='pt-4 w-full text-left italic'>Sinh viên</div>
-            <div className='w-full text-left italic'>ĐH Công nghệ - ĐHQGHN</div>
-            <div className='w-full text-left font-medium text-teal-900'>Gia sư Toán / Tiếng Anh / Ôn thi HSG</div>
-            <div className='w-full text-justify'>Đã có kinh nghiệm dạy học sinh cấp 2, cấp 3. Ôn thi HSG cho học sinh đạt giải xuất sắc</div>
-            <div className='w-full flex justify-between absolute bottom-2 px-3'>
-              <div className='italic text-slate-500'>Đã dạy: 8 lớp</div>
-              <Link className='text-teal-700 italic' href={'/'}>Chi tiết &gt;&gt;&gt;</Link>
-            </div>
-          </div>
+        <div className="mt-10"> 
+
+            <Splide aria-label="My Favorite Images" 
+              options={{
+                perPage: 4,
+                perMove: 1,
+                rewind: true,
+                gap: '7rem',
+                type: 'loop',
+                autoplay: true,
+              }}
+            >
+              
+              {tutors && tutors.map((tutor, index) => (
+                <SplideSlide
+                  
+                >
+                  <Card tutor={tutor} subjects={tutorsSubjects[index]} key={index}/>
+                </SplideSlide>
+              ))}                       
+            </Splide>
+
         </div>
         
         <div className="group-class flex flex-col justify-center items-center mt-20">
@@ -252,11 +283,70 @@ export default function Home() {
             <button className='text-white text-lg font-medium bg-teal-400 p-2 rounded-lg mt-8 ml-44'>Đăng ký ngay</button>
           </div>
           <div className=' '>
-            <img src="whyUs.png" alt="" className='absolute bottom-0 right-10 h-[32rem]'/>
+            <img src="whyUs.png" alt="" className='absolute bottom-0 right-10 h-[32rem]'/>     
           </div>
         </div>
 
       </div>
     </div>
   );
+}
+
+interface Props {
+  tutor: TutorType
+  subjects: any[]
+}
+
+
+
+
+const Card = ({tutor, subjects} : Props) => {
+
+  const convertProperties = (text: string) => {
+    switch (text) {
+      case "1YearStudent": 
+        return 'Sinh viên năm nhất'
+      case "2YearStudent": 
+        return 'Sinh viên năm nhất'
+      case "3YearStudent": 
+        return 'Sinh viên năm nhất'
+      case "4YearStudent": 
+        return 'Sinh viên năm nhất'
+      case "teacher": 
+        return 'Giáo viên'
+      case "lecturer": 
+        return 'Giảng viên'
+      // case "4YearStudent": 
+      //   return 'Sinh viên năm nhất'
+    }
+  }
+
+  const getAllSubject = () => {
+    const result = new Array()
+    if (subjects) {
+      subjects.forEach(s => {
+        if (!result.includes(s.name)) {
+          result.push(s.name)
+        }
+      })
+      return result.join(' / ')
+
+    }
+    return 0
+  }
+
+  return (
+    <div className="card w-64 h-[30rem] shadow-xl rounded-xl p-3 flex flex-col items-center relative">
+      <img src={tutor.avatar} alt="" className='w-full h-48 rounded-lg'/>
+      <div className='max-w-[75%] text-lg font-semibold text-teal-700 bg-slate-200 px-3 py-1 mt-[-10px] text-center rounded-full '>{tutor.name}</div>
+      <div className='pt-4 w-full text-left italic'>{convertProperties(tutor.job)}</div>
+      <div className='w-full text-left italic'>{tutor.school}</div>
+      <div className='w-full text-left font-medium line-clamp-2 text-teal-900'>Gia sư {getAllSubject()}</div>
+      <div className='w-full text-left line-clamp-4'>{tutor.description}</div>
+      <div className='w-full flex justify-between absolute bottom-2 px-3'>
+        <div className='italic text-slate-500'>Đã dạy: 8 lớp</div>
+        <Link className='text-teal-700 italic' href={'/'}>Chi tiết &gt;&gt;&gt;</Link>
+      </div>
+    </div>
+  )
 }

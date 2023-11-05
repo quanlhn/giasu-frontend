@@ -1,11 +1,16 @@
 'use client'
 
 import React from "react";
-import {useState, useRef} from 'react';
+import { useState, useRef, useContext } from 'react';
 import { useRouter } from 'next/navigation'
+import Link from "next/link";
+import UserContext from "../UserContext";
+import { API_PATH } from "../page";
+import Cookies from "js-cookie";
 
 const Login = () => {
 
+    
     const [type, setType] = useState("tutor");
     const formRef = useRef<HTMLDivElement>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
@@ -60,7 +65,7 @@ interface Props {
 }
 
 const LoginForm = ({fc, role}: Props) => {
-
+    const user = useContext(UserContext)
     const router = useRouter()
     const [state, setState] = React.useState({
         username: "",
@@ -79,7 +84,7 @@ const LoginForm = ({fc, role}: Props) => {
             });
         }
         // console.log(state)
-        fetch('http://localhost:8080/api/login', {
+        fetch(API_PATH + 'auth/login', {
             method: 'POST',
             mode: 'cors', 
             headers: {
@@ -87,31 +92,39 @@ const LoginForm = ({fc, role}: Props) => {
                 
             },
             body: JSON.stringify({
-                username,
+                email: username,
                 password
             })
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log(data.role)
-                    console.log(data.email)
-                    const userData = {
-                        id: data.id,
-                        name: data.name,
-                        phoneNumber: data.phone,
-                        email: data.email,
-                        isLoggedIn: true,
-                        gender: data.gender,
-                        birth: data.birth,
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText)
+                else {
+                        // console.log(response)
+                        return response.json()
                     }
-                    // user.setUser(userData)
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    router.back()
-                } else {
-                    console.log(data.message)
+            })
+            .then(data => {
+                // console.log(data.user)
+                Cookies.set('accessToken', data.access_token, { expires: 7 })
+                const t_userdata = data.user
+                const userData = {
+                    userID: t_userdata.id,
+                    name: t_userdata.name,
+                    phoneNumber: t_userdata.phoneNumber,
+                    email: t_userdata.email,
+                    role: t_userdata.role,
+                    isLoggedIn: true,
+                    gender: t_userdata.gender,
+                    birth: t_userdata.birth,
                 }
-            });
+                    console.log(userData)
+                    user.setUser(userData)
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    router.push('/')
+            })
+            .catch(err => {
+                console.log('error: ' + err)
+            })
     }
 
 
@@ -136,7 +149,7 @@ const LoginForm = ({fc, role}: Props) => {
                     <input type="password" name="password" className="form-control w-2/3 h-8 bg-grey3 p-2" onChange={handleChange} id="password" placeholder="Password" />
                 </div>
                 <div className="form-group pt-6 text-xs">
-                    Nếu chưa có tài khoản, đăng ký <span onClick={() => fc('signUp')} className="italic text-[#ff416c] cursor-pointer" >tại đây</span>
+                    Nếu chưa có tài khoản, đăng ký <Link className="italic text-[#ff416c] cursor-pointer" href={'/signup'}>tại đây</Link>
                 </div>
                 <div className="form-group absolute left-0 right-0 mx-auto bottom-16">
                     <button className="log-button">Login</button>

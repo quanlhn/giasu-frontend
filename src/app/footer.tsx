@@ -6,7 +6,7 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline';
 
 const Footer = () => {
     return (
-        <div className="h-[150px] bg-headerbg mt-24  py-2 flex gap-80 justify-center w-full ">
+        <div className="h-[150px] bg-headerbg mt-24  py-2 flex gap-80 justify-center w-full rounded-t-2xl">
             <div>
                 <h2 className="text-2xl"><strong>Gia Sư Tín</strong></h2>
                 <div className="mt-2"><BusinessOutlinedIcon />Địa chỉ: 144 Xuân Thủy, Dịch Vọng Hậu, Cầu Giấy, Hà Nội</div>

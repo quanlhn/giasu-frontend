@@ -60,3 +60,52 @@ body {
   background-color: transparent;
   border-color: rgb(15 118 110 / var(--tw-text-opacity));
 }
+
+th, td {
+  min-width: 30px;
+  background-color: #ffffff;
+}
+
+tr {
+  height: 30px;
+  
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+.dropdowns-category {
+  display: none;
+}
+
+.nameTag-dropdown:hover .dropdowns-category {
+  display: block;
+}
+
+.filterButton {
+  border-width: 2px;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.box {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.box>* {
+  flex: 0 0 50%;
+}
+
+.Select-menu { max-height: 50px;}
+
+/* .MuiOutlinedInput-notchedOutline span {
+  color: black;
+  
+} */

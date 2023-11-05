@@ -46,7 +46,8 @@ const config: Config = {
         focus: '#F7E469',
         orange2: '#fcaf17',
         lightgreen: '#52c41a',
-        apple: '#FD661F'
+        apple: '#FD661F',
+        inputLabel: '#170F49'
 
       },
     },

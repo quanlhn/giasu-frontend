@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Header from './header'
 import Footer from './footer'
+import { UserProvider } from './UserContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className='relative min-h-screen flex flex-col'>
-        <Header />
-        <div className='flex-1'>
-          {children}
-        </div>
-        <Footer /> 
+        <UserProvider>
+          <Header />
+          <div className='flex-1'>
+            {children}
+          </div>
+          <Footer /> 
+        </UserProvider>
       </body>     
     </html>
   )

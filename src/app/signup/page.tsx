@@ -1,8 +1,11 @@
 'use client'
 
 import React from "react";
-import {useState, useRef} from 'react';
+import {useState, useRef, useContext} from 'react';
 import { useRouter } from 'next/navigation'
+import { API_PATH } from "../page";
+import UserContext from "../UserContext";
+import Cookies from "js-cookie";
 
 const Signup = () => {
 
@@ -62,7 +65,7 @@ interface Props {
 const SignupForm = ({fc, role}: Props) => {
 
     const router = useRouter()
-
+    const user = useContext(UserContext)
     const [state, setState] = React.useState({
         name: "",
         email: "",
@@ -73,7 +76,7 @@ const SignupForm = ({fc, role}: Props) => {
 
     const errorRef = useRef<(HTMLDivElement | null)[]>([])
 
-    const handleSubmit =(evt: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSubmit =(evt: any) => {
         evt.preventDefault();
         const { name, email, phone, password, repass } = state;
         if (name === "" || email === "" || phone === "" || password === "" || repass === "") {
@@ -99,10 +102,8 @@ const SignupForm = ({fc, role}: Props) => {
                     [key]: ""
                 });
             }
-    
             if (password === repass) {
-                
-                fetch('http://localhost:8080/api/register', {
+                fetch(API_PATH + 'auth/register', {
                     method: 'POST',
                     mode: 'cors', 
                     headers: {
@@ -116,15 +117,39 @@ const SignupForm = ({fc, role}: Props) => {
                         password,
                         role: role,
                         gender: '',
-                        birth: null
+                        birth: null, 
+                        
                     })
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            router.push("/")
-                        }
-                    })
+                .then(response => {
+                    if (!response.ok) throw new Error(response.statusText)
+                    else return response.json()
+                })
+                .then(data => {
+                    Cookies.set('accessToken', data.access_token, { expires: 7 })
+                    const t_userdata = data.user
+                    const userData = {
+                        userID: t_userdata.id,
+                        name: t_userdata.name,
+                        phoneNumber: t_userdata.phoneNumber,
+                        email: t_userdata.email,
+                        role: t_userdata.role,
+                        isLoggedIn: true,
+                        gender: t_userdata.gender,
+                        birth: t_userdata.birth,
+                    }
+                    console.log(userData)
+                    user.setUser(userData)
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    if (role == 'tutor') {
+                        router.push('/signup/fill-tutor-info')
+                    } else {
+                        router.push('/')
+                    }
+                })
+                .catch(err => {
+                    console.log('error: ' + err)
+                })
             } else {
                 errorRef.current[5]?.classList.remove('hidden')
             }
@@ -161,7 +186,8 @@ const SignupForm = ({fc, role}: Props) => {
     return (
         <div className="sign-in-container form-container w-full mt-8">
             <h1 className="font-bold text-2xl text-teal-700">Đăng ký {role == 'tutor' ? 'Gia sư' : 'Phụ huynh' }</h1>
-            <form onSubmit={() => handleSubmit}>
+            {/* {onSubmit={() => handleSubmit}} */}
+            <form >
                 <div className="form-group pt-6">
                     {/* <label htmlFor="name">Name</label> */}
                     <input type="text" name="name" value={state.name} onChange={handleChange} className="p-2 form-control h-8 w-2/3 bg-grey3" id="name" placeholder="Name" />
@@ -204,7 +230,7 @@ const SignupForm = ({fc, role}: Props) => {
                         className="hidden text-[12px] mx-auto text-left w-2/3 italic text-[#ff416c]">
                             Nhập lại mật khẩu không đúng
                     </div>
-                    <button className="log-button">Signup</button>
+                    <button className="log-button" onClick={handleSubmit}>Signup</button>
                 </div>
             </form>
         </div>
