@@ -7,6 +7,9 @@ import Button from '@mui/material/Button';
 import UserContext from "../UserContext";
 import { API_PATH } from "../page";
 import { RequestClass } from "../CustomInterface";
+import Tutor from "../tutor/page";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from 'next/navigation'
 
 export const convertToVNmese = (text: string) => {
     switch(text) {
@@ -17,16 +20,16 @@ export const convertToVNmese = (text: string) => {
             return 'HS yếu, trung bình'
         }
         case 'studentCompetition': {
-            return 'ôn thi học sinh giỏi'
+            return 'Ôn thi học sinh giỏi'
         }
         case 'toHighSchool': {
-            return 'ôn thi chuyển cấp 9 lên 10'
+            return 'Ôn thi chuyển cấp 9 lên 10'
         }
         case 'toUniversity': {
-            return 'ôn thi đại học'
+            return 'Ôn thi đại học'
         }
         case 'ielts': {
-            return 'ôn thi ielts'
+            return 'Ôn thi ielts'
         }
         case 'hard-working': {
             return 'học sinh chăm chỉ'
@@ -61,8 +64,16 @@ export const convertToVNmese = (text: string) => {
     }
 }
 
-const Class = () => {
+const Class = ({
+    params,
+    searchParams,
+  }: {
+    params: { slug: string }
+    searchParams: { [key: string]: string | string[] | undefined }
+  }) => {
 
+    const searchParam = useSearchParams()
+    const router = useRouter()
     const user = useContext(UserContext)
     const [userStatus, setUserStatus] = useState('')
     const [classes, setClasses] = useState<Array<RequestClass>>()
@@ -70,12 +81,61 @@ const Class = () => {
     const [resultApply, setResultApply] = useState('')
     const buttonsRef = useRef<(HTMLButtonElement[])>([])
     const [fullAddress, setFullAddress] = useState<Array<String>>([])
+
+    const convertSkill = {
+        'HS khá, giỏi': 'goodPupil',
+        'HS yếu, trung bình': 'badPupil',
+        'Ôn thi HSG': 'studentCompetition',
+        'Ôn thi Đại học': 'toUniversity', 
+        'Ôn thi vào 10': 'toHighSchool'
+    }
+
+    // useEffect(() => {
+    //     const subjects = searchParam.get('subjects')
+    //     const grades = searchParam.get('grades')
+    //     const skills = searchParam.get('skills')
+        
+    //     const subjectArrays = subjects ? JSON.parse(subjects) : []
+    //     const gradesArray = grades ? JSON.parse(grades) : []
+    //     const skillsArrays = skills ? JSON.parse(skills) : []
+
+    //     console.log(subjectArrays)
+    //     console.log(gradesArray)
+    //     console.log(skillsArrays)
+    //   }, [searchParam]); 
     
+
+    /*----------- Get All Request Class and tutor Status -------------------- */
     useEffect(() => {
+        const subjects = searchParam.get('subjects')
+        const grades = searchParam.get('grades')
+        const skills = searchParam.get('skills')
+        
+        const subjectArrays = subjects ? JSON.parse(subjects) : []
+        const gradesArray = grades ? JSON.parse(grades) : []
+        const t_skillsArrays = skills ? JSON.parse(skills) : []
+
+        const skillsArrays = t_skillsArrays.map((skill: any) => {
+            for (const [key, value] of Object.entries(convertSkill)) {
+                if (key == skill) return value
+            }
+        })
+        console.log({subjectArrays, gradesArray, skillsArrays})
+
         var allClasses = new Array<RequestClass>()
-        fetch(API_PATH + 'class/get-requestClasses')
+        fetch(API_PATH + 'class/get-requestClasses', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                subjectArrays, gradesArray, skillsArrays
+            })
+        })
         .then(res => res.json())
         .then(data => {
+            // console.log(data.classes)
             data.classes.forEach((result: any) => {
                 allClasses.push({
                     requestID: result.id,
@@ -120,9 +180,15 @@ const Class = () => {
         }
 
         
-    },[user])
+    },[user, searchParam])
+
+    /*------------------------------
+    Check if tutor applied class
+    convert Address
+     -------------------- */
 
     useEffect(() => {
+        var f_address: string[] = []
         classes?.forEach((requestClass: any, index) => {
             fetch(API_PATH + 'tutor/check-applied', {
                 method: 'POST',
@@ -137,13 +203,15 @@ const Class = () => {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.isApplied) {
-                    buttonsRef.current[index]['disabled'] = true
-                } else {
-                    buttonsRef.current[index]['disabled'] = false
+                if (user.user.role == 'tutor' && userStatus == 'confirmed') {
+                    if (data.isApplied) {
+                        buttonsRef.current[index]['disabled'] = true
+                    } else {
+                        buttonsRef.current[index]['disabled'] = false
+                    }
                 }
             })
-            console.log(requestClass.address)
+            
             fetch(API_PATH + 'address/get-full-address', {
                 method: 'POST',
                 mode: 'cors', 
@@ -156,17 +224,106 @@ const Class = () => {
             })
             .then(res => res.json())
             .then(data => {
-                setFullAddress([...fullAddress, data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name])
+                const added_address = data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name
+                f_address.push(added_address)
+                // console.log(f_address)               
+                if (index == classes.length - 1) {
+                    setFullAddress(f_address)
+                }
+                
             })
+
         })
     }, [classes])
 
+    const buttonBgClass = 'bg-amber-100'
     const handleSubjectFilter = (e: any) => {
-
+        const subjects = searchParam.get('subjects')
+        const grades = searchParam.get('grades')
+        const skills = searchParam.get('skills')
+        if (subjects) {
+            const subjectArrays = JSON.parse(subjects)
+            if (!subjectArrays.includes(e.target.innerHTML)) {
+                e.target.classList.add(buttonBgClass)  
+                subjectArrays.push(e.target.innerHTML)
+                const queryString = encodeURIComponent(JSON.stringify(subjectArrays))
+                // console.log(queryString)
+                router.push(`class?subjects=${queryString}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+            } else {
+                e.target.classList.remove(buttonBgClass)
+                const index = subjectArrays.indexOf(e.target.innerHTML)
+                if (index !== -1) {
+                    subjectArrays.splice(index, 1)
+                }
+                const queryString = encodeURIComponent(JSON.stringify(subjectArrays))
+                router.push(`class?subjects=${queryString}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+            }
+        } else {
+            e.target.classList.add(buttonBgClass)
+            const subjectArrays = [e.target.innerHTML]
+            const queryString = encodeURIComponent(JSON.stringify(subjectArrays))
+            router.push(`class?subjects=${queryString}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+        }skills
     }
 
-    const getFullAddress = (r_class: any) => {
+    const handleGradeFilter = (e: any) => {
+        const subjects = searchParam.get('subjects')
+        const grades = searchParam.get('grades')
+        const skills = searchParam.get('skills')
+        if (grades) {
+            const gradesArray = JSON.parse(grades)
+            if (!gradesArray.includes(e.target.innerHTML)) {
+                e.target.classList.add(buttonBgClass)  
+                gradesArray.push(e.target.innerHTML)
+                const queryString = encodeURIComponent(JSON.stringify(gradesArray))
+                
+                router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}grades=${queryString}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+            } else {
+                e.target.classList.remove(buttonBgClass)
+                const index = gradesArray.indexOf(e.target.innerHTML)
+                if (index !== -1) {
+                    gradesArray.splice(index, 1)
+                }
+                const queryString = encodeURIComponent(JSON.stringify(gradesArray))
+                router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}grades=${queryString}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+            }
+        } else {
+            e.target.classList.add(buttonBgClass)
+            const gradesArray = [e.target.innerHTML]
+            const queryString = encodeURIComponent(JSON.stringify(gradesArray))
+            router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}grades=${queryString}${skills ? '&skills=' + encodeURIComponent(JSON.stringify(JSON.parse(skills))) : ''}`)
+        }
+    }
+    const handleSkillFilter = (e: any) => {
+        const subjects = searchParam.get('subjects')
+        const grades = searchParam.get('grades')
+        const skills = searchParam.get('skills')
+        if (skills) {
+            const skillsArrays = JSON.parse(skills)
+            if (!skillsArrays.includes(e.target.innerHTML)) {
+                skillsArrays.push(e.target.innerHTML)
+                const queryString = encodeURIComponent(JSON.stringify(skillsArrays))
+                router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}skills=${queryString}`)
+            } else {
+                e.target.classList.remove(buttonBgClass)
+                const index = skillsArrays.indexOf(e.target.innerHTML)
+                if (index !== -1) {
+                    skillsArrays.splice(index, 1)
+                }
+                const queryString = encodeURIComponent(JSON.stringify(skillsArrays))
+                router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}skills=${queryString}`)
 
+            }
+        } else {
+            e.target.classList.add(buttonBgClass)
+            const skillsArrays = [e.target.innerHTML]
+            const queryString = encodeURIComponent(JSON.stringify(skillsArrays))
+            router.push(`class?${subjects ? 'subjects=' + encodeURIComponent(JSON.stringify(JSON.parse(subjects))) + '&' : ''}${grades ? '&grades=' + encodeURIComponent(JSON.stringify(JSON.parse(grades))) + '&' : ''}skills=${queryString}`)
+        }    
+    }   
+
+    const getFullAddress = (r_class: any) => {
+        
         
     }
 
@@ -216,17 +373,17 @@ const Class = () => {
                     </div>
                     <div className="size mt-10">
                         <h3 className="text-xl mb-2">Cấp học</h3>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Cấp 1</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Cấp 2</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Cấp 3</button>
+                        <button onClick={(e) => handleGradeFilter(e)} className='filterButton'>Cấp 1</button>
+                        <button onClick={(e) => handleGradeFilter(e)} className='filterButton'>Cấp 2</button>
+                        <button onClick={(e) => handleGradeFilter(e)} className='filterButton'>Cấp 3</button>
                     </div>
                     <div className="size mt-10">
                         <h3 className="text-xl mb-2">Mức độ</h3>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>HS khá, giỏi</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>HS yếu, trung bình</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Ôn thi HSG</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Ôn thi Đại học</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Ôn thi vào 10</button>
+                        <button onClick={(e) => handleSkillFilter(e)} className='filterButton'>HS khá, giỏi</button>
+                        <button onClick={(e) => handleSkillFilter(e)} className='filterButton'>HS yếu, trung bình</button>
+                        <button onClick={(e) => handleSkillFilter(e)} className='filterButton'>Ôn thi HSG</button>
+                        <button onClick={(e) => handleSkillFilter(e)} className='filterButton'>Ôn thi Đại học</button>
+                        <button onClick={(e) => handleSkillFilter(e)} className='filterButton'>Ôn thi vào 10</button>
                     </div>
                 </Grid>
                 <Grid xs={10}>

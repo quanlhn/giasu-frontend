@@ -186,6 +186,7 @@ const FillTutorInfo = () => {
                 name: name ? name : user.user.name ,
                 phone: phone ? phone : user.user.phoneNumber,
                 specialized,
+                school,
                 job,
                 expTeach,
                 subjectRange: convert_subjectRange,
@@ -281,7 +282,7 @@ const FillTutorInfo = () => {
 
     const handleCloseModal = () => {
         setOpenModal(false)
-        router.push('/class')
+        // router.push('/class')
     }
 
     const changeProvince = (e: any) => {
