@@ -110,6 +110,10 @@ table, th, td {
 
 }
 
+.ql-container {
+  overflow: auto;
+}
+
 /* .MuiOutlinedInput-notchedOutline span {
   color: black;
   

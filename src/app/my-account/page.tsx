@@ -12,8 +12,223 @@ import { useRouter } from 'next/navigation'
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import ClassIcon from '@mui/icons-material/Class';
+import { userAgent } from "next/server";
+
 
 const MyAccount = () => {
+    const user = useContext(UserContext)
+
+
+
+    return (
+        <div>
+            {user 
+            ?
+            <div>
+                {
+                    user.user.role == "tutor"
+                    ?
+                    <div>
+                        <TutorAccount />
+                    </div>
+                    :
+                    <div>
+                        <ParentAccount />
+                    </div>
+                }
+            </div>
+            :
+            <div>
+                Please signin
+            </div>
+            }
+        </div>
+    )
+}
+
+
+const TutorAccount = () => {
+
+    const APPLIED_CLASS_STATUS = 'appliedClass'
+    const TEACHING_CLASS_STATUS = 'teachingClass'
+
+    const user = useContext(UserContext)
+    const appliedClass = useRef<HTMLDivElement>(null);
+    const teachingClass = useRef<HTMLDivElement>(null);
+    const [currentTab, setCurrentTab] = useState(APPLIED_CLASS_STATUS)
+    const [classes, setClasses] = useState<Array<any>>()
+
+    const switchTab = (event: any) => {
+        if (event.currentTarget == appliedClass.current) {
+            teachingClass.current?.classList.remove("text-apple")
+            appliedClass.current?.classList.add("text-apple")
+            setCurrentTab(APPLIED_CLASS_STATUS)
+        } else {
+            appliedClass.current?.classList.remove("text-apple")
+            teachingClass.current?.classList.add("text-apple")
+            setCurrentTab(TEACHING_CLASS_STATUS)
+        }
+    }
+
+    useEffect(() => {
+        fetch(API_PATH + 'tutor/get-applied-class-of-tutor', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tutorId: user.user.userID
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data.classes)
+            setClasses(data.classes)
+        })
+    }, [user])
+    
+
+
+    return(
+        <div className="pt-16 mx-6">
+            <Grid container spacing={10}>
+                <Grid xs={2}>
+                    <div className="nameTag-dropdown relative">
+                        <div>
+                            <div className="w-full font-semibold hover:cursor-pointer text-apple" ref={appliedClass} onClick={(event) => switchTab(event)}>Lớp đã đăng ký</div>
+                        </div>
+                        
+                        <div>
+                            <div className="w-full font-semibold hover:cursor-pointer" ref={teachingClass} onClick={(event) => switchTab(event)}>Lớp đang dạy</div>
+                        </div>
+                    </div>
+                </Grid>
+                <Grid xs={10}>
+                    {classes && 
+                        (currentTab==APPLIED_CLASS_STATUS ?
+                        (classes.map((t_class, index) => {
+                            if (t_class.status == "confirming") {
+                                return <ClassOfTutor key={index} classOfTutor={t_class} />
+                            }
+                        }))
+                        :
+                        (classes.map((t_class, index) => {
+                            if (t_class.status == "confirmed") {
+                                return <ClassOfTutor key={index} classOfTutor={t_class} />
+                            }
+                        }))
+                        )
+                    }
+                </Grid>
+            </Grid>
+        </div>
+    )
+}
+
+interface ClassOfTutorProps {
+    classOfTutor: any,
+}
+
+const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
+    const user = useContext(UserContext)
+    const [fullAddress, setFullAddress] = useState('')
+    const [openModal, setOpenModal] = useState(false)
+    const router = useRouter()
+    
+    
+    useEffect(() => {
+        fetch(API_PATH + 'address/get-full-address', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                wardCode: classOfTutor.address,
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            setFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
+        })
+    }, [])
+
+    const cancelClass = () => {
+        fetch(API_PATH + 'tutor/cancel-request-class', {
+            method: 'DELETE',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: classOfTutor.t_r_c_id
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data.status)
+        })
+        setOpenModal(true)
+    }
+
+    const handleCloseModal = () =>{
+        setOpenModal(false)
+        window.location.reload()
+    }
+
+    return (
+        <div className="mt-10">
+            <Grid container spacing={3} className='mt-10 items-center bg-slate-100 rounded-md px-5 py-2 drop-shadow' >
+                <Grid xs={6}>
+                    <div className="flex">
+                        <div className="mr-1">Học sinh {convertToVNmese(classOfTutor.studentGender)}, </div>
+                        <div>{convertToVNmese(classOfTutor.skill)}</div>
+                    </div>
+                    <div><span className="font-semibold">Yêu cầu:</span> Gia sư {convertToVNmese(classOfTutor.requiredGender)}</div>
+                    <div><span className="font-semibold">Môn học:</span> {classOfTutor.subject} {classOfTutor.grade}</div>
+                    <div><span className="font-semibold">Địa chỉ: </span>{classOfTutor.detailAddress} {fullAddress}</div>
+                    <div><span className="font-semibold">Học phí: </span> {classOfTutor.salary.toLocaleString("de-DE")}đ/buổi  -  {classOfTutor.frequency}buổi/tuần</div>
+                    <div><span className="font-semibold">Tính cách học sinh: </span>{convertToVNmese(classOfTutor.studentCharacter)}</div>
+                    <div><span className="font-semibold">Yêu cầu khác:</span> {classOfTutor.otherRequirement}</div>
+                </Grid>
+                <Grid xs={4} >
+                    <div className="mb-4">Thời gian dạy:</div>
+                    <Timetable timetable={classOfTutor.schedule}  />
+                </Grid>
+                <Grid xs={2} >
+                    <div className="w-full h-full items-center justify-center flex">
+                        {classOfTutor.status=='confirming' 
+                        ? 
+                        <div>
+                            <button onClick={cancelClass} className="bg-slate-500 text-white font-semibold shadow-lg px-2.5 py-1.5 rounded-md mb-10 ">Hủy đăng ký</button>
+
+                        </div>
+                        :
+                        <div></div>
+                        }
+                    </div>
+                </Grid>
+            </Grid>
+            <hr />
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <div className="bg-white w-max px-6 py-4 translate-x-[-50%] translate-y-[-50%] top-1/2 left-1/2 absolute rounded-xl">
+                    {/* <div className="text-2xl">Cảm ơn bạn đã lựa chọn <span className="text-teal-700 font-semibold">Gia Sư Tín</span></div> */}
+                    <h4>Hủy đăng ký thành công</h4>
+                    <Button variant="outlined" onClick={handleCloseModal} className="my-2">Ok</Button> 
+                </div>
+            </Modal>
+        </div>
+    )
+}
+
+
+const ParentAccount = () => {
     const user = useContext(UserContext)
     const [requestClasses, setRequestClasses] = useState<Array<any>>()
     const [confirmedClasses, setConfirmedClasses] = useState<Array<any>>()
