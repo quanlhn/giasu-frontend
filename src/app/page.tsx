@@ -12,8 +12,11 @@ import Link from 'next/link';
 import MarkUnreadChatAltOutlinedIcon from '@mui/icons-material/MarkUnreadChatAltOutlined';
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
-import { Splide, SplideSlide } from '@splidejs/react-splide';
-import '@splidejs/react-splide/css';
+
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import { Pagination, Navigation } from 'swiper/modules';
 
 import TutorType from './CustomInterface';
 import { Result } from 'postcss';
@@ -177,8 +180,45 @@ export default function Home() {
           </ToggleButtonGroup>
         </div>
         <div className="mt-10"> 
+            {/* <div className="splide" >
+              <div className="slide__track">
+                <ul className='splide__list'>
+                  {tutors && tutors.map((tutor, index) => (
+                  <li
+                    className='splide__slide'
+                  >
+                    <Card tutor={tutor} subjects={tutorsSubjects[index]} key={index}/>
+                  </li>
+                  ))}
+                </ul>
+              </div>
+            </div> */}
 
-            <Splide aria-label="My Favorite Images" 
+            <Swiper
+              slidesPerView={4}
+              spaceBetween={100}
+              className='mySwiper'
+              loop={true}
+              navigation={true}
+              modules={[Navigation]}
+            >
+               {tutors && tutors.map((tutor, index) => (
+                <SwiperSlide
+                  
+                >
+                  <Card tutor={tutor} subjects={tutorsSubjects[index]} key={index}/>
+                </SwiperSlide>
+                ))}
+               {tutors && tutors.map((tutor, index) => (
+                <SwiperSlide
+                  
+                >
+                  <Card tutor={tutor} subjects={tutorsSubjects[index]} key={index}/>
+                </SwiperSlide>
+                ))}
+            </Swiper>
+
+            {/* <Splide aria-label="My Favorite Images" 
               options={{
                 perPage: 4,
                 perMove: 1,
@@ -196,7 +236,7 @@ export default function Home() {
                   <Card tutor={tutor} subjects={tutorsSubjects[index]} key={index}/>
                 </SplideSlide>
               ))}                       
-            </Splide>
+            </Splide> */}
 
         </div>
         
