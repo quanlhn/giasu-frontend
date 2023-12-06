@@ -111,15 +111,15 @@ type Props = {
 const TextEditor = ({ value, onChange, placeholder }: Props) => {
     return (
       <div>
-        <input type="text" />
+        {/* <input type="text" /> */}
         <ReactQuill
-          theme="snow"
-          value={value || ""}
-          modules={modules}
-          formats={formats}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="h-96 bg-white"
+        //   theme="snow"
+        //   value={value || ""}
+        //   modules={modules}
+        //   formats={formats}
+        //   onChange={onChange}
+        //   placeholder={placeholder}
+        //   className="h-96 bg-white"
         />
       </div>
     );
