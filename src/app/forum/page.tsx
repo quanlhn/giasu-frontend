@@ -14,6 +14,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import AddIcon from '@mui/icons-material/Add';
 import { API_PATH } from "../page";
+import { useRouter } from "next/navigation";
 
 const Forum = () => {
     const user = useContext(UserContext)
@@ -21,6 +22,7 @@ const Forum = () => {
     const [contentValue, setContentValue] = useState('')
     const [openModal, setOpenModal] = useState(false)
     const [posts, setPosts] = useState<Array<any>>()
+    const router = useRouter()
 
     useEffect(() => {
         fetch(API_PATH + 'post')
@@ -58,7 +60,7 @@ const Forum = () => {
 
                 </Grid>
                 <Grid xs={3}>
-                    <div>Tạo bài viết mới <span className="italic text-sky-500 cursor-pointer" onClick={() => setOpenModal(true)}>tại đây</span></div>
+                    <div>Tạo bài viết mới <span className="italic text-sky-500 cursor-pointer" onClick={() => router.push('/forum/new_post')}>tại đây</span></div>
                 </Grid>
             </Grid>
         </div>
