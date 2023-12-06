@@ -112,7 +112,7 @@ const TextEditor = ({ value, onChange, placeholder }: Props) => {
     return (
       <div>
         <input type="text" />
-        {/* <ReactQuill
+        <ReactQuill
           theme="snow"
           value={value || ""}
           modules={modules}
@@ -120,7 +120,7 @@ const TextEditor = ({ value, onChange, placeholder }: Props) => {
           onChange={onChange}
           placeholder={placeholder}
           className="h-96 bg-white"
-        /> */}
+        />
       </div>
     );
 };
