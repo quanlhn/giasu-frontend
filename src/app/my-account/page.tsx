@@ -17,9 +17,6 @@ import { userAgent } from "next/server";
 
 const MyAccount = () => {
     const user = useContext(UserContext)
-
-
-
     return (
         <div>
             {user 

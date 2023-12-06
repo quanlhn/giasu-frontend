@@ -6,8 +6,8 @@ import UserContext from "../UserContext";
 import Grid from '@mui/material/Unstable_Grid2';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+
+
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import PersonIcon from '@mui/icons-material/Person';
@@ -257,59 +257,6 @@ const Post = ({postInfo}: PostProps) => {
     )
 }
 
-const modules = {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [
-        { list: "ordered" },
-        { list: "bullet" },
-        { indent: "-1" },
-        { indent: "+1" },
-      ],
-      ["link", "code"],
-      ["clean"],
-    ],
-  };
-   
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "code",
-  ];
-   
-  interface OnChangeHandler {
-    (e: any): void;
-  }
-   
-  type Props = {
-    value: string;
-    placeholder: string;
-    onChange: OnChangeHandler;
-  };
-   
-  export const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
-    return (
-      <>
-        <ReactQuill
-          theme="snow"
-          value={value || ""}
-          modules={modules}
-          formats={formats}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="h-96 bg-white"
-        />
-      </>
-    );
-  };
+
 
 export default Forum
