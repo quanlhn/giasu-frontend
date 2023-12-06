@@ -3,7 +3,7 @@ name: Deploy Gia sư Tín
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   build:
 
@@ -25,6 +25,6 @@ jobs:
     - name: Build and Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
-        BASE_BRANCH: master
+        BASE_BRANCH: main
         BRANCH: gh-pages
         FOLDER: build
