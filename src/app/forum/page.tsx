@@ -10,6 +10,9 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
+import PersonIcon from '@mui/icons-material/Person';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import AddIcon from '@mui/icons-material/Add';
 import { API_PATH } from "../page";
 
 const Forum = () => {
@@ -72,7 +75,12 @@ const DISLIKE = 'dislike'
 const Post = ({postInfo}: PostProps) => {
     const user = useContext(UserContext)
     const [vote, setVote] = useState(0)
-    const [detailPost, setDetailPost] = useState()
+    const [newCommentValue, setNewCommentValue] = useState('')
+    const [updateComment, setUpdateComment] = useState(false)
+    const [detailPost, setDetailPost] = useState({
+        commentData: [],
+        postData: []
+    })
 
     useEffect(() => {
         fetch(API_PATH + `post/${postInfo.post_id}`)
@@ -89,8 +97,12 @@ const Post = ({postInfo}: PostProps) => {
         .then(res => res.json())
         .then(data => {
             setDetailPost(data)
+            if (updateComment) {
+                setUpdateComment(false)
+                setNewCommentValue('')
+            }
         })
-    }, [vote])
+    }, [vote, updateComment])
 
     const createVote = (voteType: string) => {
         fetch(API_PATH + `post/${postInfo.post_id}/${voteType}`, {
@@ -135,6 +147,31 @@ const Post = ({postInfo}: PostProps) => {
 
     }
 
+    
+
+    const addComment = () => {
+        console.log(newCommentValue)
+        if (newCommentValue != '') {
+            fetch(API_PATH + 'comment', {
+                method: 'POST',
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    post_id: postInfo.post_id,
+                    comment_content: newCommentValue,
+                    user_id: user.user.userID
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                setUpdateComment(true)
+            })
+        }
+    }
+
 
     return (
         <div>
@@ -166,6 +203,47 @@ const Post = ({postInfo}: PostProps) => {
                             <div dangerouslySetInnerHTML={{__html: postInfo.post_content}} />
                         </div>
                         <hr />
+                        {detailPost && detailPost['commentData']
+                        ?
+                            <div className="">
+                                <div className="mx-5 my-4 text-xl text-textcolor">
+                                    Bình luận
+                                </div>
+                                {
+                                    (detailPost.commentData.map((comment: any, index: any) => {
+                                        return <div key={index} className="mt-6 mx-4">
+                                            <div className="flex font-semibold text-base">
+                                                <PersonIcon className="mr-2" />
+                                                <div>{comment.name}</div>
+                                            </div>
+                                            <div className="mt-2">{comment.comment_content}</div>
+                                            <hr />
+                                            <div className="text-sm italic text-right">{comment.createdAt}</div>
+                                        </div>
+                                    }))
+                                }
+                                <div className="my-4 mx-5 text-lg flex justify-between items-center">
+                                    <div>Thêm bình luận</div>
+                                    <AddIcon className="cursor-pointer" onClick={() => {}} />
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Bình luận mới..." 
+                                        className="text-textcolor text-lg w-full px-3 py-2.5 h-max border rounded italic"  
+                                        onChange={(evt) => setNewCommentValue(evt.target.value)}
+                                    />
+                                    <div className="bg-headerbg mx-6 h-2/3 rounded-lg p-1.5">
+                                        <CheckRoundedIcon className="text-2xl cursor-pointer" onClick={addComment} />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        :
+                            <div>
+
+                            </div>
+                        }
                     </div>
                         
                     </div>
