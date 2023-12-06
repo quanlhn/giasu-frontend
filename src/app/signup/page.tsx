@@ -3,7 +3,7 @@
 import React from "react";
 import {useState, useRef, useContext} from 'react';
 import { useRouter } from 'next/navigation'
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import UserContext from "../UserContext";
 import Cookies from "js-cookie";
 

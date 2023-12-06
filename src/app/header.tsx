@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button, ButtonGroup } from "@mui/material";
 import { useState, useEffect, useContext } from "react";
 import UserContext from "./UserContext";
-import { API_PATH } from "./page";
+import { API_PATH } from "./CustomInterface";
 import Cookies from 'js-cookie'
 import path from "path";
 

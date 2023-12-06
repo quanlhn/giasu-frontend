@@ -5,7 +5,7 @@ import { useState, useRef, useContext } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from "next/link";
 import UserContext from "../UserContext";
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import Cookies from "js-cookie";
 
 const Login = () => {

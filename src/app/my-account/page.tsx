@@ -4,7 +4,7 @@ import React from "react";
 import { useContext, useState, useEffect, useRef } from 'react'
 import UserContext from "../UserContext";
 import Grid from '@mui/material/Unstable_Grid2';
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import Cookies from 'js-cookie'
 import { convertToVNmese } from "../CustomInterface";
 import Timetable from "../components/Timetable";

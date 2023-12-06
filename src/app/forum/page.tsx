@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import PersonIcon from '@mui/icons-material/Person';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import AddIcon from '@mui/icons-material/Add';
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import { useRouter } from "next/navigation";
 
 const Forum = () => {

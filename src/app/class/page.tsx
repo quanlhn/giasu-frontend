@@ -5,7 +5,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import UserContext from "../UserContext";
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import { RequestClass } from "../CustomInterface";
 import Tutor from "../tutor/page";
 import { useRouter } from "next/navigation";

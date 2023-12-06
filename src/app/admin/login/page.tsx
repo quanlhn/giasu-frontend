@@ -4,7 +4,7 @@ import React from "react";
 import { useContext} from 'react'
 import UserContext from "../../UserContext";
 import { useRouter } from 'next/navigation'
-import { API_PATH } from "@/app/page";
+import { API_PATH } from "@/app/CustomInterface";
 import Link from "next/link";
 import Cookies from 'js-cookie'
 

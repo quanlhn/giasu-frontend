@@ -4,7 +4,7 @@ import React from "react";
 import { useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import UserContext from "../UserContext";
-import { API_PATH } from "../page";
+import { API_PATH } from "../CustomInterface";
 import TutorType from "../CustomInterface";
 import Grid from '@mui/material/Unstable_Grid2';
 import Cookies from 'js-cookie'

@@ -17,8 +17,9 @@ import '@splidejs/react-splide/css';
 
 import TutorType from './CustomInterface';
 import { Result } from 'postcss';
+import { API_PATH } from './CustomInterface';
 
-export const API_PATH = 'http://localhost:3000/api/'
+
 
 
 

@@ -40,6 +40,8 @@ export interface RequestClass {
     status: string
 }
 
+export const API_PATH = 'http://localhost:3000/api/'
+
 export const convertToVNmese = (text: string): string => {
     switch(text) {
         case 'goodPupil': {

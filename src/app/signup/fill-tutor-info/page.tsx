@@ -21,7 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ListSubheader from "@mui/material/ListSubheader";
 import { InputAdornment } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { API_PATH } from "@/app/page";
+import { API_PATH } from "@/app/CustomInterface";
 import UserContext from "@/app/UserContext";
 import Cookies from "js-cookie";
 
