@@ -108,10 +108,11 @@ type Props = {
     onChange: OnChangeHandler;
 };
    
-const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
+const TextEditor = ({ value, onChange, placeholder }: Props) => {
     return (
-      <>
-        <ReactQuill
+      <div>
+        <input type="text" />
+        {/* <ReactQuill
           theme="snow"
           value={value || ""}
           modules={modules}
@@ -119,8 +120,8 @@ const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
           onChange={onChange}
           placeholder={placeholder}
           className="h-96 bg-white"
-        />
-      </>
+        /> */}
+      </div>
     );
 };
 
