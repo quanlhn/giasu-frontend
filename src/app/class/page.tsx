@@ -343,7 +343,7 @@ const Class: NextPage<{
                             <Grid 
                                 container
                                 spacing={3}
-                                className="mt-10 items-center bg-slate-100 rounded-md px-5 py-2 drop-shadow" 
+                                className="items-center mt-10 bg-slate-100 rounded-md px-5 py-2 drop-shadow" 
                                 key={index}
                             >
                                 <Grid xs={6}>

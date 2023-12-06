@@ -11,7 +11,7 @@ import "react-quill/dist/quill.snow.css";
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import { API_PATH } from "@/app/CustomInterface";
-import { TextEditor } from "@/app/components/TextEditor";
+
 
 const NewPost = () => {
     const user = useContext(UserContext)
@@ -64,9 +64,64 @@ const NewPost = () => {
                 placeholder="Tiêu đề..."
                 />
             <div className=" mb-5 text-xl font-semibold">Nội dung: </div>
-            {/* <TextEditor value={contentValue} placeholder={'Nhập nội dung...'} onChange={(value) => handleContentChange(value)} /> */}
+            <TextEditor value={contentValue} placeholder={'Nhập nội dung...'} onChange={(value) => handleContentChange(value)} />
         </div>
     )
 }
+
+const modules = {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link", "code"],
+      ["clean"],
+    ],
+  };
+   
+const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "code",
+];
+   
+interface OnChangeHandler {
+    (e: any): void;
+}
+   
+type Props = {
+    value: string;
+    placeholder: string;
+    onChange: OnChangeHandler;
+};
+   
+const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
+    return (
+      <>
+        <ReactQuill
+          theme="snow"
+          value={value || ""}
+          modules={modules}
+          formats={formats}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="h-96 bg-white"
+        />
+      </>
+    );
+};
 
 export default NewPost

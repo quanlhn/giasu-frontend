@@ -41,7 +41,7 @@ const modules = {
     onChange: OnChangeHandler;
   };
    
-  export const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
+const TextEditor: React.FC<Props> = ({ value, onChange, placeholder }) => {
     return (
       <>
         <ReactQuill
