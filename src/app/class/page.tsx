@@ -396,7 +396,7 @@ export interface Props {
     timetable: Array<string>
 }
 
-export const Timetable = ({timetable}: Props) => {
+export const Timetable: NextPage<Props> = ({timetable}) => {
     const sessionsRef = useRef<(HTMLDivElement)[]>([])
 
     useEffect(() => {
