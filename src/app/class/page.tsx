@@ -11,7 +11,7 @@ import Tutor from "../tutor/page";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from 'next/navigation'
 
-export const convertToVNmese = (text: string) => {
+export const convertToVNmese = (text: string): string => {
     switch(text) {
         case 'goodPupil': {
             return 'HS khá, giỏi'
