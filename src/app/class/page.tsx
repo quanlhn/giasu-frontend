@@ -11,13 +11,14 @@ import Tutor from "../tutor/page";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from 'next/navigation'
 import { convertToVNmese } from "../CustomInterface";
+import { NextPage } from "next";
 
-const Class = ({
-    params,
-    searchParams,
-  }: {
+const Class: NextPage<{
     params: { slug: string }
     searchParams: { [key: string]: string | string[] | undefined }
+  }> = ({
+    params,
+    searchParams,
   }) => {
 
     const searchParam = useSearchParams()
