@@ -64,7 +64,7 @@ const NewPost = () => {
                 placeholder="Tiêu đề..."
                 />
             <div className=" mb-5 text-xl font-semibold">Nội dung: </div>
-            <TextEditor value={contentValue} placeholder={'Nhập nội dung...'} onChange={(value) => handleContentChange(value)} />
+            {/* <TextEditor value={contentValue} placeholder={'Nhập nội dung...'} onChange={(value) => handleContentChange(value)} /> */}
         </div>
     )
 }
