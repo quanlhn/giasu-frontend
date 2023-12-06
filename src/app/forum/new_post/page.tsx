@@ -6,11 +6,13 @@ import UserContext from "../../UserContext";
 import Grid from '@mui/material/Unstable_Grid2';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import ReactQuill from "react-quill";
+// import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import { API_PATH } from "@/app/CustomInterface";
+import dynamic from "next/dynamic";
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 
 const NewPost = () => {
@@ -110,18 +112,23 @@ type Props = {
    
 const TextEditor = ({ value, onChange, placeholder }: Props) => {
     return (
-      <div>
-        {/* <input type="text" /> */}
+    <div>
+        {/* {document 
+        ?
+        <input type="text" />
+        :
+        <textarea />
+        } */}
         <ReactQuill
-        //   theme="snow"
-        //   value={value || ""}
-        //   modules={modules}
-        //   formats={formats}
-        //   onChange={onChange}
-        //   placeholder={placeholder}
-        //   className="h-96 bg-white"
+            theme="snow"
+            value={value || ""}
+            modules={modules}
+            formats={formats}
+            onChange={onChange}
+            placeholder={placeholder}
+            className="h-96 bg-white"
         />
-      </div>
+    </div>
     );
 };
 
