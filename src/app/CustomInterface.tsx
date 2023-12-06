@@ -39,3 +39,56 @@ export interface RequestClass {
     otherRequirement: string,
     status: string
 }
+
+export const convertToVNmese = (text: string): string => {
+    switch(text) {
+        case 'goodPupil': {
+            return 'HS khá, giỏi'
+        }
+        case 'badPupil': {
+            return 'HS yếu, trung bình'
+        }
+        case 'studentCompetition': {
+            return 'Ôn thi học sinh giỏi'
+        }
+        case 'toHighSchool': {
+            return 'Ôn thi chuyển cấp 9 lên 10'
+        }
+        case 'toUniversity': {
+            return 'Ôn thi đại học'
+        }
+        case 'ielts': {
+            return 'Ôn thi ielts'
+        }
+        case 'hard-working': {
+            return 'học sinh chăm chỉ'
+        }
+        case 'lazy': {
+            return 'học sinh lười học'
+        }
+        case 'like-game': {
+            return 'học sinh ham game, mạng xã hội'
+        }
+        case 'male': {
+            return 'nam'
+        }
+        case 'female': {
+            return 'nữ'
+        }
+        // case 'female': {
+        //     return 'nữ'
+        // }
+        // case 'female': {
+        //     return 'nữ'
+        // }
+        // case 'female': {
+        //     return 'nữ'
+        // }
+        // case 'female': {
+        //     return 'nữ'
+        // }
+        default: {
+            return 'default'
+        }
+    }
+}

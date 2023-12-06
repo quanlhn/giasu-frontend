@@ -6,7 +6,7 @@ import UserContext from "../UserContext";
 import Grid from '@mui/material/Unstable_Grid2';
 import { API_PATH } from "../page";
 import Cookies from 'js-cookie'
-import { convertToVNmese } from "../class/page";
+import { convertToVNmese } from "../CustomInterface";
 import { Timetable } from "../class/page";
 import { useRouter } from 'next/navigation'
 import Modal from '@mui/material/Modal';
