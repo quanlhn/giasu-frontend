@@ -314,7 +314,7 @@ const Class: NextPage<{
                     <div className="size mt-10">
                         <h3 className="text-xl mb-2">Môn học</h3>
                         <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Toán</button>
-                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Lý</button>
+                        <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Vật lý</button>
                         <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Hóa</button>
                         <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Sinh</button>
                         <button onClick={(e) => handleSubjectFilter(e)} className='filterButton'>Tiếng Anh</button>

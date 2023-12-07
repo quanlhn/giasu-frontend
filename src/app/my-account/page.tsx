@@ -4,7 +4,7 @@ import React from "react";
 import { useContext, useState, useEffect, useRef } from 'react'
 import UserContext from "../UserContext";
 import Grid from '@mui/material/Unstable_Grid2';
-import { API_PATH } from "../CustomInterface";
+import TutorType, { API_PATH } from "../CustomInterface";
 import Cookies from 'js-cookie'
 import { convertToVNmese } from "../CustomInterface";
 import Timetable from "../components/Timetable";
@@ -13,6 +13,7 @@ import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import ClassIcon from '@mui/icons-material/Class';
 import { userAgent } from "next/server";
+import TutorInfoCard from "../components/TutorInfoCard";
 
 
 const MyAccount = () => {
@@ -48,22 +49,32 @@ const TutorAccount = () => {
 
     const APPLIED_CLASS_STATUS = 'appliedClass'
     const TEACHING_CLASS_STATUS = 'teachingClass'
+    const REQUESTED_CLASS_STATUS = 'requestedClass'
 
     const user = useContext(UserContext)
     const appliedClass = useRef<HTMLDivElement>(null);
     const teachingClass = useRef<HTMLDivElement>(null);
+    const requestedClass = useRef<HTMLDivElement>(null);
     const [currentTab, setCurrentTab] = useState(APPLIED_CLASS_STATUS)
     const [classes, setClasses] = useState<Array<any>>()
+    const [requestedClasses, setRequestedClasses] = useState<Array<any>>()
 
     const switchTab = (event: any) => {
         if (event.currentTarget == appliedClass.current) {
             teachingClass.current?.classList.remove("text-apple")
+            requestedClass.current?.classList.remove("text-apple")
             appliedClass.current?.classList.add("text-apple")
             setCurrentTab(APPLIED_CLASS_STATUS)
-        } else {
+        } else if (event.currentTarget == teachingClass.current) {
             appliedClass.current?.classList.remove("text-apple")
+            requestedClass.current?.classList.remove("text-apple")
             teachingClass.current?.classList.add("text-apple")
             setCurrentTab(TEACHING_CLASS_STATUS)
+        } else {
+            appliedClass.current?.classList.remove("text-apple")
+            teachingClass.current?.classList.remove("text-apple")
+            requestedClass.current?.classList.add("text-apple")
+            setCurrentTab(REQUESTED_CLASS_STATUS)
         }
     }
 
@@ -82,6 +93,23 @@ const TutorAccount = () => {
         .then(data => {
             console.log(data.classes)
             setClasses(data.classes)
+
+        })
+
+        fetch(API_PATH + 'tutor/get-requested-class', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                requestTutorId: user.user.userID
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data)
+            setRequestedClasses(data.classes)
         })
     }, [user])
     
@@ -97,24 +125,37 @@ const TutorAccount = () => {
                         </div>
                         
                         <div>
+                            <div className="w-full font-semibold hover:cursor-pointer" ref={requestedClass} onClick={(event) => switchTab(event)}>Lớp được mời dạy</div>
+                        </div>
+                        
+                        <div>
                             <div className="w-full font-semibold hover:cursor-pointer" ref={teachingClass} onClick={(event) => switchTab(event)}>Lớp đang dạy</div>
                         </div>
                     </div>
                 </Grid>
                 <Grid xs={10}>
                     {classes && 
-                        (currentTab==APPLIED_CLASS_STATUS ?
+                        (currentTab==APPLIED_CLASS_STATUS 
+                        ?
                         (classes.map((t_class, index) => {
                             if (t_class.status == "confirming") {
                                 return <ClassOfTutor key={index} classOfTutor={t_class} />
                             }
                         }))
                         :
-                        (classes.map((t_class, index) => {
-                            if (t_class.status == "confirmed") {
+                        (
+                            currentTab==TEACHING_CLASS_STATUS
+                            ?
+                            (classes.map((t_class, index) => {
+                                if (t_class.status == "confirmed") {
+                                    return <ClassOfTutor key={index} classOfTutor={t_class} />
+                                }
+                            }))
+                            :
+                            (requestedClasses && requestedClasses.map((t_class, index) => {
                                 return <ClassOfTutor key={index} classOfTutor={t_class} />
-                            }
-                        }))
+                            }))
+                        )
                         )
                     }
                 </Grid>
@@ -169,6 +210,42 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
         setOpenModal(true)
     }
 
+    const acceptClass = () => {
+        fetch(API_PATH + 'class/create-class', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                parent_id: classOfTutor.parentID,
+                tutor_id: classOfTutor.requestTutorId,
+                request_class_id: classOfTutor.id,
+                address: fullAddress,
+                detail_address: classOfTutor.detailAddress,
+                price: classOfTutor.salary,
+                frequency: classOfTutor.frequency,
+            })
+        })
+        .then(res => res.json())
+        .then(data => console.log(data))
+
+        fetch(API_PATH + 'class/update-requestClass-status', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: classOfTutor.id
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data)
+        })
+    }
+
     const handleCloseModal = () =>{
         setOpenModal(false)
         window.location.reload()
@@ -190,7 +267,7 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
                     <div><span className="font-semibold">Yêu cầu khác:</span> {classOfTutor.otherRequirement}</div>
                 </Grid>
                 <Grid xs={4} >
-                    <div className="mb-4">Thời gian dạy:</div>
+                    <div className="mb-4">Thời gian có thể học:</div>
                     <Timetable timetable={classOfTutor.schedule}  />
                 </Grid>
                 <Grid xs={2} >
@@ -199,10 +276,17 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
                         ? 
                         <div>
                             <button onClick={cancelClass} className="bg-slate-500 text-white font-semibold shadow-lg px-2.5 py-1.5 rounded-md mb-10 ">Hủy đăng ký</button>
-
                         </div>
                         :
-                        <div></div>
+                        (
+                            classOfTutor.status == 'wait-for-tutor'
+                            ?
+                                <div>
+                                    <button onClick={acceptClass} className="bg-slate-500 text-white font-semibold shadow-lg px-2.5 py-1.5 rounded-md mb-10 ">Đồng ý nhận lớp</button>
+                                </div>
+                            :
+                            <div></div>
+                        )
                         }
                     </div>
                 </Grid>
@@ -234,8 +318,11 @@ const ParentAccount = () => {
     const [currentClass, setCurrentClass] = useState<any>()
     const listRef = useRef<(HTMLLIElement[])>([])
     const classRef = useRef<(HTMLDivElement)>(null)
+    const requestTutorClass = useRef<(HTMLDivElement)>(null)
 
     const [showRequestClass, setShowRequestClass] = useState(true)
+    const [showRequestTutor, setShowRequestTutor] = useState(true)
+    const [showClass, setShowClass] = useState(true)
 
     useEffect(() => {
         const cookie = Cookies.get('accessToken')
@@ -288,14 +375,34 @@ const ParentAccount = () => {
                 ref.classList.remove('font-semibold')
             }
         })
+        requestTutorClass.current?.classList.remove('text-apple');
+        requestTutorClass.current?.classList.remove('font-semibold');
         classRef.current?.classList.add('text-apple');
         classRef.current?.classList.add('font-semibold');
         setShowRequestClass(false)
+        setShowRequestTutor(false)
+        setShowClass(true)
+    }
+    const showRequestTutorClass = () => {
+        const cookie = Cookies.get('accessToken')
+        listRef.current && listRef.current.forEach(ref => {
+            if (ref.classList.contains('text-apple')) {
+                ref.classList.remove('text-apple');
+                ref.classList.remove('font-semibold')
+
+            }
+        })
+        classRef.current?.classList.remove('text-apple');
+        classRef.current?.classList.remove('font-semibold');
+        requestTutorClass.current?.classList.add('text-apple');
+        requestTutorClass.current?.classList.add('font-semibold');
+        setShowRequestClass(false)
+        setShowRequestTutor(true)
+        setShowClass(false)
 
     }
 
     const showTutors = (requestClass: any, index: number) => {
-        setShowRequestClass(true)
         listRef.current.forEach(ref => {
             if (ref.classList.contains('text-apple')) {
                 ref.classList.remove('text-apple');
@@ -305,10 +412,15 @@ const ParentAccount = () => {
         
         classRef.current?.classList.remove('text-apple');
         classRef.current?.classList.remove('font-semibold');
+        requestTutorClass.current?.classList.remove('text-apple');
+        requestTutorClass.current?.classList.remove('font-semibold');
 
         listRef.current[index].classList.add('text-apple');
         listRef.current[index].classList.add('font-semibold');
 
+        setShowRequestClass(true)
+        setShowRequestTutor(false)
+        setShowClass(false)
 
         // console.log(requestClass)
         setCurrentClass(requestClass)
@@ -352,6 +464,9 @@ const ParentAccount = () => {
                         </div>
                         
                         <div>
+                            <div className="w-full font-semibold hover:cursor-pointer" ref={requestTutorClass} onClick={showRequestTutorClass} >Lớp chỉ định gia sư</div>
+                        </div>
+                        <div>
                             <div className="w-full font-semibold hover:cursor-pointer" ref={classRef} onClick={showClassInfo} >Lớp đang học</div>
                         </div>
                     </div>
@@ -365,12 +480,125 @@ const ParentAccount = () => {
                             <TutorCard tutor={tutor} parents={user.user} requestclass={currentClass} key={index}  />
                         )))
                         :
-                        (confirmedClasses?.map((confirmedClass, index) => (
-                            <ClassInfoCard confirmedClass={confirmedClass} />
-                        )))
+                        (
+                            showRequestTutor
+                            ?
+                            <ul className="flex flex-col items-center ">
+                                {requestClasses && requestClasses.map((r_class, index) => {
+                                    if (r_class.status == 'wait-for-tutor') {
+                                        return (
+                                        <div key={index}>
+                                            <RequestTutorCard requestTutorClass={r_class} />
+                                        </div>
+                                        )
+                                    }
+                                })}
+                            </ul> 
+                            :
+                            (confirmedClasses?.map((confirmedClass, index) => (
+                                <ClassInfoCard confirmedClass={confirmedClass} />
+                            )))
+                        )
                     }
                 </Grid>
             </Grid>
+        </div>
+    )
+}
+
+interface TutorIdProp {
+    requestTutorClass: any
+}
+
+const RequestTutorCard = ({requestTutorClass} : TutorIdProp) => {
+    const [tutor, setTutor] = useState<TutorType>()
+    const [classFullAddress, setClassFullAddress] = useState<String>()
+
+    useEffect(() => {
+        console.log(requestTutorClass.requestTutorId)
+        fetch(API_PATH + 'tutor/get-tutor', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userID: requestTutorClass.requestTutorId
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const result = data.tutor
+            const newTutor = {
+                userID: result.userID,
+                name: result.name,
+                phone: result.phone,
+                school: result.school,
+                specialized: result.specialized,
+                job: result.job,
+                expTeach: result.expTeach,
+                subjectIds: result.subjectIds,
+                subjects: new Array(),
+                skillRange: result.skillRange.split(','),
+                schedule: result.schedule.split(','),
+                description: result.description,
+                status: result.status,
+                role: result.role,
+                gender: result.gender,
+                birth: !result.birth ? '' : result.birth.slice(0, 10),
+                address: result.address, 
+                avatar: result.avatar
+            }
+            setTutor(newTutor)
+        })
+
+        fetch(API_PATH + 'address/get-full-address', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                wardCode: requestTutorClass.address,
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            setClassFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
+        })
+
+    }, [])
+
+
+    return(
+        <div className="mt-16">
+            {tutor &&
+            <div className="bg-slate-100 px-12 py-2 drop-shadow">
+                <div className="text-2xl text-textcolor font-semibold underline">Thông tin lớp học</div>
+                <Grid 
+                    container
+                    spacing={3}
+                    className="items-center mt-2 mb-5" 
+                >
+                    <Grid xs={6}>
+                        <div>Lớp số {requestTutorClass.id} / {classFullAddress}</div>
+                        <div>Học sinh {requestTutorClass.studentGender == 'male' ? 'Nam' : 'Nữ'} học lớp {requestTutorClass.grade}. {convertToVNmese(requestTutorClass.skill)}, {convertToVNmese(requestTutorClass.studentCharacter)} </div>
+                        <div>Yêu cầu tìm gia sư {convertToVNmese(requestTutorClass.requiredGender)} có kinh nghiệm, {requestTutorClass.otherRequirement}</div>
+                        <div>{requestTutorClass.frequency} buổi / tuần, {requestTutorClass.salary.toLocaleString("de-DE")}đ / buổi </div>
+                        <div className="font-semibold text-base italic">Trạng thái: Đợi gia sư</div>
+                    </Grid>
+                    <Grid xs={2}></Grid>
+                    <Grid xs={4} >
+                        <div className="mb-4 ml-4">Thời gian có thể dạy</div>
+                        <Timetable timetable={requestTutorClass.schedule} />
+                    </Grid>
+                </Grid>
+                <hr />
+                <div className="text-2xl text-textcolor font-semibold underline mt-5 mb-[-2rem]">Thông tin gia sư chỉ định:</div>
+                <TutorInfoCard tutor={tutor}  />
+
+            </div>
+            }
         </div>
     )
 }
@@ -379,11 +607,15 @@ interface ClassInfoProps {
     confirmedClass: any
 }
 
+
+
 const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
     const [tutor, setTutor] = useState<any>()
     const [requestClass, setRequestClass] = useState<any>()
+    const [classFullAddress, setClassFullAddress] = useState<String>()
 
     useEffect(() => {
+        console.log('hihi')
         fetch(API_PATH + 'tutor/get-tutor', {
             method: 'POST',
             mode: 'cors', 
@@ -412,11 +644,29 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
         })
         .then(res => res.json())
         .then(data => {
-            console.log(data.requestClass)
             setRequestClass(data.requestClass)
         })
 
     }, [])
+
+    useEffect(() => {
+        if (requestClass) {
+            fetch(API_PATH + 'address/get-full-address', {
+                method: 'POST',
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    wardCode: requestClass.address,
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                setClassFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
+            })
+        }        
+    }, [requestClass])
 
     return (
         <div>
@@ -455,7 +705,7 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
                                 <div className="mt-2">Học phí {requestClass.salary.toLocaleString("de-DE")}đ/buổi</div>
                             </Grid>
                         </Grid>
-                        <div className="mt-2">Địa chỉ: {requestClass.detailAddress}</div>
+                        <div className="mt-2">Địa chỉ: {requestClass.detailAddress}, {classFullAddress}</div>
                     </div>
                 </Grid>
             </Grid>
@@ -534,8 +784,8 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
         })
         .then(res => res.json())
         .then(data => {
-            console.log(tutor.address)
-            console.log(requestclass.address)
+            // console.log(tutor.address)
+            // console.log(requestclass.address)
             setClassFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
         })
 
