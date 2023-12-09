@@ -361,7 +361,7 @@ const TutorCard = ({tutor}: Props) => {
     const router = useRouter()
     const [fullAddress, setFullAddress] = useState<String>()
     const [classFullAddress, setClassFullAddress] = useState<String>()
-    const [subjects, setSubjects] = useState<Array<any>>()
+    const [subjects, setSubjects] = useState<String>()
     const [openModal, setOpenModal] = useState(false)
     const agreementRef = useRef<HTMLInputElement>(null)
     const payLaterRef = useRef<HTMLInputElement>(null)
@@ -401,26 +401,34 @@ const TutorCard = ({tutor}: Props) => {
         })
         .then(res => res.json())
         .then(data => {
-            setSubjects(data.subject)
-            console.log(data.subject)
+            setSubjects(() => {
+                const result = new Array()
+                data.subject[0].forEach((s: any) => {
+                    if (!result.includes(s.name)) {
+                      result.push(s.name)
+                    }
+                  })
+                  return result.join(' / ')        
+            })
+            // console.log(data.subject)
         })
 
         // payLaterRef.current && (payLaterRef.current.checked = false)
-    }, [tutor])
+    }, [])
 
-    const getAllSubject = () => {
-        const result = new Array()
-        if (subjects) {
-          subjects.forEach((s: any) => {
-            if (!result.includes(s.name)) {
-              result.push(s.name)
-            }
-          })
-          return result.join(' / ')
+    // const getAllSubject = () => {
+    //     const result = new Array()
+    //     if (subjects) {
+    //       subjects.forEach((s: any) => {
+    //         if (!result.includes(s.name)) {
+    //           result.push(s.name)
+    //         }
+    //       })
+    //       return result.join(' / ')
     
-        }
-        return 0
-    }
+    //     }
+    //     return 0
+    // }
 
     const choosetutor = () => {
         
@@ -448,7 +456,7 @@ const TutorCard = ({tutor}: Props) => {
 
                 </Grid>
                 <Grid xs={5}>
-                    <div className="mt-1"><span className="italic">Gia sư môn </span>{getAllSubject()}</div>
+                    <div className="mt-1"><span className="italic">Gia sư môn </span>{subjects}</div>
                     <div className="mt-1"><span className="italic">Có thể dạy:</span> {tutor.skillRange.map((e: any) => convertToVNmese(e)).join(' / ')}</div>
                     <div className="mt-1"><span className="italic">Học vấn: </span>{tutor.specialized}, {tutor.school}</div>
                     <div className="mt-1"><span className="italic">Nghề nghiệp hiện nay:</span> {convertProperties(tutor.job)}</div>
@@ -458,8 +466,6 @@ const TutorCard = ({tutor}: Props) => {
                 <Grid xs={4} className='flex flex-col items-center justify-between pb-20' >
                     <Timetable timetable={tutor.schedule} />
                     <button onClick={() => router.push(`/requestTutor/${tutor.userID}`)} className="bg-slate-500 text-white font-semibold shadow-lg px-2.5 py-1.5 rounded-md mb-10 ">Chọn gia sư</button>
-                </Grid>
-                <Grid xs={1}>
                 </Grid>
             </Grid>
             <hr />

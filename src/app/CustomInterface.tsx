@@ -40,7 +40,7 @@ export interface RequestClass {
     status: string
 }
 
-export const API_PATH = 'http://localhost:3000/api/'
+export const API_PATH = 'http://localhost:10000/api/'
 
 export const convertToVNmese = (text: string): string => {
     switch(text) {

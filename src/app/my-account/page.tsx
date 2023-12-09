@@ -14,31 +14,46 @@ import Button from '@mui/material/Button';
 import ClassIcon from '@mui/icons-material/Class';
 import { userAgent } from "next/server";
 import TutorInfoCard from "../components/TutorInfoCard";
+import { InferGetStaticPropsType } from 'next'
+import { GetStaticProps } from 'next'
 
 
 const MyAccount = () => {
     const user = useContext(UserContext)
     return (
+        // <div>
+        //     {user 
+        //     ?
+        //     <div>
+        //         {
+        //             user.user.role == "tutor"
+        //             ?
+        //             <div>
+        //                 <TutorAccount />
+        //             </div>
+        //             :
+        //             <div>
+        //                 <ParentAccount />
+        //             </div>
+        //         }
+        //     </div>
+        //     :
+        //     <div>
+        //         Please signin
+        //     </div>
+        //     }
+        // </div>
         <div>
-            {user 
-            ?
-            <div>
-                {
-                    user.user.role == "tutor"
-                    ?
-                    <div>
-                        <TutorAccount />
-                    </div>
-                    :
-                    <div>
-                        <ParentAccount />
-                    </div>
-                }
-            </div>
-            :
-            <div>
-                Please signin
-            </div>
+            {
+                user.user.role == "tutor"
+                ?
+                <div>
+                    <TutorAccount />
+                </div>
+                :
+                <div>
+                    <ParentAccount />
+                </div>
             }
         </div>
     )
@@ -146,14 +161,25 @@ const TutorAccount = () => {
                         (
                             currentTab==TEACHING_CLASS_STATUS
                             ?
-                            (classes.map((t_class, index) => {
-                                if (t_class.status == "confirmed") {
-                                    return <ClassOfTutor key={index} classOfTutor={t_class} />
+                            <div>
+                                {(classes.map((t_class, index) => {
+                                    if (t_class.status == "confirmed" || t_class.status == "paid" || t_class.status == "not-paid") {
+                                        return <ClassOfTutor key={index} classOfTutor={t_class} />
+                                    }
+                                }))}
+                                {
+                                    (requestedClasses && requestedClasses.map((t_class, index) => {
+                                        if (t_class.status == "confirmed" || t_class.status == "paid" || t_class.status == "not-paid") {
+                                            return <ClassOfTutor key={index} classOfTutor={t_class} />
+                                        }
+                                    }))
                                 }
-                            }))
+                            </div>
                             :
                             (requestedClasses && requestedClasses.map((t_class, index) => {
-                                return <ClassOfTutor key={index} classOfTutor={t_class} />
+                                if (t_class.status == 'wait-for-tutor') {
+                                    return <ClassOfTutor key={index} classOfTutor={t_class} />
+                                }
                             }))
                         )
                         )
@@ -237,13 +263,30 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                id: classOfTutor.id
+                id: classOfTutor.id,
+                status: 'not-paid'
             })
         })
         .then(res => res.json())
         .then(data => {
             console.log(data)
         })
+
+        fetch(API_PATH + 'notice/create-notice', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: classOfTutor.parentID,
+                content: `Gia sư ${user.user.name} đã đồng ý nhận lớp`,
+                pathto: '/my-account'
+            })
+        })
+
+        setOpenModal(true)
+
     }
 
     const handleCloseModal = () =>{
@@ -262,6 +305,7 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
                     <div><span className="font-semibold">Yêu cầu:</span> Gia sư {convertToVNmese(classOfTutor.requiredGender)}</div>
                     <div><span className="font-semibold">Môn học:</span> {classOfTutor.subject} {classOfTutor.grade}</div>
                     <div><span className="font-semibold">Địa chỉ: </span>{classOfTutor.detailAddress} {fullAddress}</div>
+                    {(classOfTutor.status == 'paid' || classOfTutor.status == 'not-paid') && <div><span className="font-semibold">Số điện thoại: </span> {classOfTutor.phone}</div>}
                     <div><span className="font-semibold">Học phí: </span> {classOfTutor.salary.toLocaleString("de-DE")}đ/buổi  -  {classOfTutor.frequency}buổi/tuần</div>
                     <div><span className="font-semibold">Tính cách học sinh: </span>{convertToVNmese(classOfTutor.studentCharacter)}</div>
                     <div><span className="font-semibold">Yêu cầu khác:</span> {classOfTutor.otherRequirement}</div>
@@ -300,7 +344,7 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
             >
                 <div className="bg-white w-max px-6 py-4 translate-x-[-50%] translate-y-[-50%] top-1/2 left-1/2 absolute rounded-xl">
                     {/* <div className="text-2xl">Cảm ơn bạn đã lựa chọn <span className="text-teal-700 font-semibold">Gia Sư Tín</span></div> */}
-                    <h4>Hủy đăng ký thành công</h4>
+                    <h4>{classOfTutor.status == 'wait-for-tutor' ? '' : 'Hủy'} đăng ký thành công</h4>
                     <Button variant="outlined" onClick={handleCloseModal} className="my-2">Ok</Button> 
                 </div>
             </Modal>
@@ -311,8 +355,8 @@ const ClassOfTutor = ({classOfTutor}: ClassOfTutorProps) => {
 
 const ParentAccount = () => {
     const user = useContext(UserContext)
-    const [requestClasses, setRequestClasses] = useState<Array<any>>()
-    const [confirmedClasses, setConfirmedClasses] = useState<Array<any>>()
+    const [requestClasses, setRequestClasses] = useState<Array<any>>([])
+    const [confirmedClasses, setConfirmedClasses] = useState<Array<any>>([])
 
     const [shownTutors, setShownTutors] = useState<Array<any>>()
     const [currentClass, setCurrentClass] = useState<any>()
@@ -321,10 +365,11 @@ const ParentAccount = () => {
     const requestTutorClass = useRef<(HTMLDivElement)>(null)
 
     const [showRequestClass, setShowRequestClass] = useState(true)
-    const [showRequestTutor, setShowRequestTutor] = useState(true)
-    const [showClass, setShowClass] = useState(true)
+    const [showRequestTutor, setShowRequestTutor] = useState(false)
+    const [showClass, setShowClass] = useState(false)
 
     useEffect(() => {
+        console.log(1)
         const cookie = Cookies.get('accessToken')
         fetch(API_PATH + 'parents/get-requestClass-of-parents', {
             method: 'POST',
@@ -449,8 +494,9 @@ const ParentAccount = () => {
                         <div>
                             <div className="w-full font-semibold">Lớp chờ nhận gia sư</div>
                             <ul className="flex flex-col items-end ">
-                                {requestClasses && requestClasses.map((r_class, index) => (
-                                    <li 
+                                {requestClasses && requestClasses.map((r_class, index) => {
+                                    if (r_class.status == 'confirming') {
+                                        return <li 
                                         className="text-sm text-right cursor-pointer m-3 border-b-2 flex items-center" 
                                         onClick={(e) => showTutors(r_class, index)} 
                                         ref={(el: HTMLLIElement) => listRef.current[index] = el}
@@ -459,7 +505,8 @@ const ParentAccount = () => {
                                         <ClassIcon className="text-base mr-1"></ClassIcon>
                                         <div className="">{capitalizeFirstLetter(convertToVNmese(r_class.studentGender))}, {r_class.name} {r_class.grade} </div>
                                     </li>
-                                ))}
+                                    }
+                                })}
                             </ul>
                         </div>
                         
@@ -496,7 +543,7 @@ const ParentAccount = () => {
                             </ul> 
                             :
                             (confirmedClasses?.map((confirmedClass, index) => (
-                                <ClassInfoCard confirmedClass={confirmedClass} />
+                                <ClassInfoCard key={index} confirmedClass={confirmedClass} />
                             )))
                         )
                     }
@@ -613,9 +660,11 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
     const [tutor, setTutor] = useState<any>()
     const [requestClass, setRequestClass] = useState<any>()
     const [classFullAddress, setClassFullAddress] = useState<String>()
+    const [tutorFullAddress, setTutorFullAddress] = useState<String>()
+    const [subjects, setSubjects] = useState<String>()
 
     useEffect(() => {
-        console.log('hihi')
+        console.log(confirmedClass)
         fetch(API_PATH + 'tutor/get-tutor', {
             method: 'POST',
             mode: 'cors', 
@@ -631,6 +680,9 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
             console.log(data.tutor)
             setTutor(data.tutor)
         })
+        .catch(error => {
+            console.error("Error fetching tutor information:", error);
+        });
 
         fetch(API_PATH + 'class/get-requestClass-by-requestId', {
             method: 'POST',
@@ -642,12 +694,60 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
                 id: confirmedClass.request_class_id
             })            
         })
-        .then(res => res.json())
+        .then(res => {
+            console.log(res)
+            return res.json()
+        })
         .then(data => {
             setRequestClass(data.requestClass)
         })
 
     }, [])
+
+    useEffect(() => {
+        if(tutor) {
+            fetch(API_PATH + 'tutor/getSubjectsOfTutors', {
+                method: 'POST',
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ids: tutor.subjectIds,
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                setSubjects(() => {
+                    const result = new Array()
+                    data.subject[0].forEach((s: any) => {
+                        if (!result.includes(s.name)) {
+                          result.push(s.name)
+                        }
+                    })
+                    return result.join(' / ')        
+                })
+                console.log(data.subject)
+            })
+
+            fetch(API_PATH + 'address/get-full-address', {
+                method: 'POST',
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    wardCode: tutor.address,
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                setTutorFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
+            })
+        }
+    }, [tutor])
+
+    
 
     useEffect(() => {
         if (requestClass) {
@@ -665,11 +765,60 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
             .then(data => {
                 setClassFullAddress(data.address[0].w_name + ', ' + data.address[0].d_name + ', ' + data.address[0].p_name)
             })
-        }        
+        }     
+
     }, [requestClass])
 
+
+    const getContract = () => {
+        const _tutor = {
+            name: tutor.name,
+            phone: tutor.phone,
+            address: tutorFullAddress,
+            job: convertToVNmese(tutor.job)
+        }
+        const _parent = {
+            name: requestClass.parentName,
+            phone: requestClass.phone,
+            address: `${requestClass.detailAddress}, ${classFullAddress}`,
+        }
+        const _classInfo = {
+            subject: requestClass.name,
+            schedule: `${requestClass.frequency}b/tuần`,
+            price: `${requestClass.salary.toLocaleString("de-DE")}đ/buổi`,
+            time_per_day: '2h/buổi'
+        }
+
+        fetch(API_PATH + 'class/get_contract', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tutor: _tutor,
+                parent: _parent,
+                classInfo: _classInfo
+            })
+        }).then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(new Blob([blob]))
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'contract.pdf'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            window.URL.revokeObjectURL(url)
+        })  
+        .catch((err) => {
+            console.log('Error downloading PDF: ' + err)
+        })
+        
+    }
+
     return (
-        <div>
+        <div className="mb-10">
             {tutor && requestClass
             ? 
             <Grid container spacing={3} >
@@ -677,18 +826,21 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
                     <div className="mt-1"><img src={tutor['avatar']} alt="" className="w-full" /></div>
                     <div className="mt-1"><span className="italic">Họ tên: </span>{tutor.name}</div>
                     <div className="mt-1"><span className="italic">Giới tính: </span>{convertToVNmese(tutor.gender)}. <span className="italic" >Ngày sinh: </span>{tutor.birth.slice(0, 10)}</div>
-                    <div className="mt-1"><span className="italic">Địa chỉ: </span>{}</div>
+                    <div className="mt-1"><span className="italic">Địa chỉ: </span>{tutorFullAddress}</div>
 
                 </Grid>
                 <Grid xs={5}>
-                    <div className="mt-1"><span className="italic">Gia sư môn </span></div>
+                    <div className="mt-1"><span className="italic">Gia sư môn </span>{subjects}</div>
                     <div className="mt-1"><span className="italic">Có thể dạy:</span> {tutor.skillRange.split(',').map((e: any) => convertToVNmese(e)).join(' / ')}</div>
                     <div className="mt-1"><span className="italic">Học vấn: </span>{tutor.specialized}, {tutor.school}</div>
                     <div className="mt-1"><span className="italic">Nghề nghiệp hiện nay:</span> {convertProperties(tutor.job)}</div>
                     <div className="mt-1"><span className="italic">Thông tin khác:</span> {tutor.description}</div>
-
+                    <div>Chi tiết hợp đồng: <span onClick={getContract} className="italic text-blue-500 cursor-pointer">tải xuống tại đây</span></div>
                 </Grid>
                 <Grid xs={4}>
+                    <div className=""><span className="text-xl text-textcolor font-semibold">Phí nhận lớp: </span>{(requestClass.frequency * 4 * requestClass.salary * 0.4).toLocaleString("de-DE")}đ</div>
+                    <div>Tình trạng: {requestClass.status == 'paid' ? "Đã nộp" : "Chưa nộp"}</div>
+                    <div>{requestClass.status != 'paid' && <div>Thanh toán <span className="italic text-blue-500 cursor-pointer">tại đây</span></div>}</div>
                     <div className="mt-6">
                         <div className="text-xl text-textcolor font-semibold">Thông tin lớp học:</div>
                         <Grid container spacing={2}>
@@ -700,7 +852,7 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
                                 <div className="mt-2">Thời gian học: {requestClass.frequency}/tuần. </div>
                             </Grid>
                             <Grid xs={5}>
-                                <div className="mt-2">Môn học: {requestClass.name} </div>
+                                <div className="mt-2">Môn học: {requestClass.subject} </div>
                                 <div className="mt-2">SĐT: {requestClass.phone}</div>
                                 <div className="mt-2">Học phí {requestClass.salary.toLocaleString("de-DE")}đ/buổi</div>
                             </Grid>
@@ -712,6 +864,7 @@ const ClassInfoCard = ({confirmedClass}: ClassInfoProps) => {
             :
             <div>Không có lớp thỏa mãn</div>
             }
+            
         </div>
     )
 }
@@ -744,7 +897,8 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
     const router = useRouter()
     const [fullAddress, setFullAddress] = useState<String>()
     const [classFullAddress, setClassFullAddress] = useState<String>()
-    const [subjects, setSubjects] = useState<Array<any>>()
+    // const [subjects, setSubjects] = useState<Array<any>>()
+    const [subjects, setSubjects] = useState<String>()
     const [openModal, setOpenModal] = useState(false)
     const agreementRef = useRef<HTMLInputElement>(null)
     const payLaterRef = useRef<HTMLInputElement>(null)
@@ -801,27 +955,42 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
         })
         .then(res => res.json())
         .then(data => {
-            setSubjects(data.subject)
+            setSubjects(() => {
+                const result = new Array()
+                data.subject[0].forEach((s: any) => {
+                    if (!result.includes(s.name)) {
+                      result.push(s.name)
+                    }
+                  })
+                  return result.join(' / ')        
+            })
+            // console.log(data.subject)
         })
 
         // payLaterRef.current && (payLaterRef.current.checked = false)
     }, [])
 
-    const getAllSubject = () => {
-        const result = new Array()
-        if (subjects) {
-          subjects.forEach((s: any) => {
-            if (!result.includes(s.name)) {
-              result.push(s.name)
-            }
-          })
-          return result.join(' / ')
+    // const getAllSubject = () => {
+    //     const result = new Array()
+    //     if (subjects) {
+    //       subjects.forEach((s: any) => {
+    //         if (!result.includes(s.name)) {
+    //           result.push(s.name)
+    //         }
+    //       })
+    //       return result.join(' / ')
     
-        }
-        return 0
-    }
+    //     }
+    //     return 0
+    // }
 
     const choosetutor = () => {
+        let status
+        if (payImmediateRef.current?.checked) {
+            status = 'paid'
+        } else if (payLaterRef.current?.checked) {
+            status = 'not-paid'
+        }
         console.log('hihi')
         fetch(API_PATH + 'class/create-class', {
             method: 'POST',
@@ -842,6 +1011,19 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
         .then(res => res.json())
         .then(data => console.log(data))
 
+        fetch(API_PATH + 'notice/create-notice', {
+            method: 'POST',
+            mode: 'cors', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: tutor.userID,
+                content: 'Nhận lớp thành công, click để xem thông tin chi tiết',
+                pathto: '/my-account'
+            })
+        })
+
         fetch(API_PATH + 'class/update-requestClass-status', {
             method: 'POST',
             mode: 'cors', 
@@ -849,13 +1031,16 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                id: requestclass.reqId
+                id: requestclass.reqId,
+                status
             })
         })
         .then(res => res.json())
         .then(data => {
             handleCloseModal1()
         })
+
+
 
         getContract()
     }
@@ -956,7 +1141,7 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
 
                 </Grid>
                 <Grid xs={5}>
-                    <div className="mt-1"><span className="italic">Gia sư môn </span>{getAllSubject()}</div>
+                    <div className="mt-1"><span className="italic">Gia sư môn </span>{subjects}</div>
                     <div className="mt-1"><span className="italic">Có thể dạy:</span> {tutor.skillRange.split(',').map((e: any) => convertToVNmese(e)).join(' / ')}</div>
                     <div className="mt-1"><span className="italic">Học vấn: </span>{tutor.specialized}, {tutor.school}</div>
                     <div className="mt-1"><span className="italic">Nghề nghiệp hiện nay:</span> {convertProperties(tutor.job)}</div>
@@ -1136,7 +1321,7 @@ const TutorCard = ({tutor, parents, requestclass}: Props) => {
                                     </Grid>
                                     <Grid xs={5}>
                                         <div>Giới tính: {convertToVNmese(tutor.gender)}</div>
-                                        <div className="mt-2">Gia sư môn: {getAllSubject()}</div>
+                                        <div className="mt-2">Gia sư môn: {subjects}</div>
                                         <div className="mt-2">Nghề nghiệp: {convertToVNmese(tutor.job)} </div>
                                     </Grid>
                                 </Grid>

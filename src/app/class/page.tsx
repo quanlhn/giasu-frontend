@@ -294,6 +294,18 @@ const Class: NextPage<{
         .then(data => {
             console.log(data)
             if (data.isPassed) {
+                fetch(API_PATH + 'notice/create-notice', {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: requestClass.parentID,
+                        content: 'Lớp học bạn đăng đã có gia sư ứng tuyển',
+                        pathto: '/my-account'
+                    })
+                })
                 setResultApply('Chúc mừng bạn đã đăng ký nhận lớp thành công. \n Kết quả sẽ được gửi tới bạn trong thời gian sớm nhất')
             } else {
                 setResultApply('Chúng tôi rất tiếc vì lớp này không phù hợp với bạn. \n Hãy tìm thêm các lớp khác phù hợp với mình nhé!')

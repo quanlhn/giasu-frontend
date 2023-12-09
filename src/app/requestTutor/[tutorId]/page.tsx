@@ -366,6 +366,18 @@ const RequestClassPage = ({tutor}: Props) => {
         .then(res => res.json())
         .then(data => {
                 setOpenModal(true)
+                fetch(API_PATH + 'notice/create-notice', {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: tutor.userID,
+                        content: 'Bạn có lời mời dạy một lớp học mới',
+                        pathto: '/my-account'
+                    })
+                })
                 
         })
     }
