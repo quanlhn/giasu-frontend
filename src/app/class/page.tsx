@@ -360,7 +360,7 @@ const Class: NextPage<{
                             >
                                 <Grid xs={6}>
                                     <div>Lớp số {element.requestID} / {fullAddress[index]}</div>
-                                    <div>Học sinh {element.studentGender == 'male' ? 'Nam' : 'Nữ'} học lớp {element.grade[element.grade.length-1]}. {convertToVNmese(element.skill)}, {convertToVNmese(element.studentCharacter)} </div>
+                                    <div>Học sinh {element.studentGender == 'male' ? 'Nam' : 'Nữ'} học {element.grade}. {convertToVNmese(element.skill)}, {convertToVNmese(element.studentCharacter)} </div>
                                     <div>Yêu cầu tìm gia sư {convertToVNmese(element.requiredGender)} có kinh nghiệm, {element.otherRequirement}</div>
                                     <div>{element.frequency} buổi / tuần, {element.salary.toLocaleString("de-DE")}đ / buổi </div>
                                     <hr />
