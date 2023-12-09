@@ -224,20 +224,25 @@ const Post = ({postInfo}: PostProps) => {
                                         </div>
                                     }))
                                 }
-                                <div className="my-4 mx-5 text-lg flex justify-between items-center">
-                                    <div>Thêm bình luận</div>
-                                    <AddIcon className="cursor-pointer" onClick={() => {}} />
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Bình luận mới..." 
-                                        className="text-textcolor text-lg w-full px-3 py-2.5 h-max border rounded italic"  
-                                        onChange={(evt) => setNewCommentValue(evt.target.value)}
-                                    />
-                                    <div className="bg-headerbg mx-6 h-2/3 rounded-lg p-1.5">
-                                        <CheckRoundedIcon className="text-2xl cursor-pointer" onClick={addComment} />
-                                    </div>
+                                <div>
+                                    {user.user.role == 'tutor' &&
+                                        <div className="flex justify-between items-center">
+                                            <div className="my-4 mx-5 text-lg flex justify-between items-center">
+                                                <div>Thêm bình luận</div>
+                                                <AddIcon className="cursor-pointer" onClick={() => {}} />
+                                            </div>
+                                            <input 
+                                                type="text" 
+                                                placeholder="Bình luận mới..." 
+                                                className="text-textcolor text-lg w-full px-3 py-2.5 h-max border rounded italic"  
+                                                onChange={(evt) => setNewCommentValue(evt.target.value)}
+                                            />
+                                            <div className="bg-headerbg mx-6 h-2/3 rounded-lg p-1.5">
+                                                <CheckRoundedIcon className="text-2xl cursor-pointer" onClick={addComment} />
+                                            </div>
+                                        </div>
+                                    }
+
                                 </div>
                             </div>
                             
