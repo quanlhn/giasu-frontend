@@ -1,20 +1,29 @@
 'use client'
 
-import React from "react";
+import React, { Ref } from "react";
 import Link from "next/link";
 import { Button, ButtonGroup } from "@mui/material";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import UserContext from "./UserContext";
 import { API_PATH } from "./CustomInterface";
 import Cookies from 'js-cookie'
 import path from "path";
 import NotificationAddIcon from '@mui/icons-material/NotificationAdd';
 import Popover from '@mui/material/Popover';
+import { usePathname } from "next/navigation";
 
 const Header = () => {
     const [userName, setUserName] = useState('')
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>()
     const [notices, setNotices] = useState<Array<Notice>>()
+
+    const homeRef = useRef<HTMLDivElement>(null)
+    const parentsRef = useRef<HTMLDivElement>(null)
+    const tutorRef = useRef<HTMLDivElement>(null)
+    const classRef = useRef<HTMLDivElement>(null)
+    const forumRef = useRef<HTMLDivElement>(null)
+    // const searchParam = useSearchParams()
+    const pathname = usePathname()
 
     const userContext = useContext(UserContext)
     const defaultUser = {
@@ -27,6 +36,42 @@ const Header = () => {
         birth: '',
         isLoggedIn: false,
     }
+
+    useEffect(() => {
+        if (pathname == '/') {
+            updateRefStyle(homeRef)
+        } else if (pathname == '/parents') {
+            updateRefStyle(parentsRef)
+        } else if (pathname == '/tutor') {
+            updateRefStyle(tutorRef)
+        } else if (pathname == '/class') {
+            updateRefStyle(classRef)
+        } else if (pathname == '/forum') {
+            updateRefStyle(forumRef)
+        }
+    }, [pathname])
+
+    const updateRefStyle = (ref: React.RefObject<HTMLDivElement>) => {
+        homeRef.current?.classList.contains('text-apple') && homeRef.current?.classList.remove('text-apple')
+        !homeRef.current?.classList.contains('text-slate-800') && homeRef.current?.classList.add('text-slate-800')
+
+        parentsRef.current?.classList.contains('text-apple') && parentsRef.current?.classList.remove('text-apple')
+        !parentsRef.current?.classList.contains('text-slate-800') && parentsRef.current?.classList.add('text-slate-800')
+
+        tutorRef.current?.classList.contains('text-apple') && tutorRef.current?.classList.remove('text-apple')
+        !tutorRef.current?.classList.contains('text-slate-800') && tutorRef.current?.classList.add('text-slate-800')
+
+        classRef.current?.classList.contains('text-apple') && classRef.current?.classList.remove('text-apple')
+        !classRef.current?.classList.contains('text-slate-800') && classRef.current?.classList.add('text-slate-800')
+
+        forumRef.current?.classList.contains('text-apple') && forumRef.current?.classList.remove('text-apple')
+        !forumRef.current?.classList.contains('text-slate-800') && forumRef.current?.classList.add('text-slate-800')
+
+        ref.current?.classList.remove('text-slate-800')
+        ref.current?.classList.add('text-apple')
+    }
+
+
     const [userStorage, setUserStorage] = useState(defaultUser)
     if (typeof window !== 'undefined') {
         useEffect(() => {
@@ -132,27 +177,27 @@ const Header = () => {
                 </div>
             </div>
             <div className="nav flex gap-16 items-center">
-                    <div className="">
-                        <Link className="text-slate-800 text-lg font-bold tracking-wide" href={'/'} >Trang chủ</Link>
+                    <div ref={homeRef} className="text-slate-800 text-lg font-medium tracking-wide">
+                        <Link className="" href={'/'} >Trang chủ</Link>
                     </div>
-                    <div className="nameTag-dropdown relative min-w-[10rem]">
-                        <div className="w-full flex">
-                            <Link className="text-slate-800 text-lg font-medium tracking-wide relative w-full text-center " href={'/parents'} >Phụ huynh</Link>
+                    <div ref={parentsRef} className="nameTag-dropdown relative min-w-[10rem] text-slate-800 text-lg font-medium tracking-wide">
+                        <div className="w-full flex ">
+                            <Link className=" relative w-full text-center " href={'/parents'} >Phụ huynh</Link>
 
                         </div>
-                        <ul className="dropdowns-category absolute right-0 bg-slate-100 p-2 rounded-md text-slate-800">
+                        <ul className="dropdowns-category text-base font-normal absolute right-0 bg-slate-100 p-2 rounded-md text-slate-800">
                             <li><Link href={'/parents'}><u>Phụ huynh cần biết</u></Link></li>
                             <li><Link href={'/requestClass'}><u>Đăng ký tìm gia sư</u></Link></li>
                         </ul>
                     </div>
-                    <div className="">
-                        <Link className="text-slate-800 text-lg font-medium tracking-wide relative" href={'/tutor'} >Gia sư</Link>
+                    <div ref={tutorRef} className="text-slate-800 text-lg font-medium tracking-wide">
+                        <Link className=" relative" href={'/tutor'} >Gia sư</Link>
                     </div>
-                    <div className="">
-                        <Link className="text-slate-800 text-lg font-medium tracking-wide relative" href={'/class'} >Lớp mới</Link>
+                    <div ref={classRef} className="text-slate-800 text-lg font-medium tracking-wide ">
+                        <Link className="relative" href={'/class'} >Lớp mới</Link>
                     </div>
-                    <div className="">
-                        <Link className="text-slate-800 text-lg font-medium tracking-wide relative" href={'/forum'} >Diễn đàn</Link>
+                    <div ref={forumRef} className="text-slate-800 text-lg font-medium tracking-wide ">
+                        <Link className="relative" href={'/forum'} >Diễn đàn</Link>
                     </div>
             </div>
             <div >

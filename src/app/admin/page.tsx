@@ -101,6 +101,20 @@ const Admin = () => {
                         status: element.status
                     })
                 })
+
+                fetch(API_PATH + 'notice/create-notice', {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: element.userID,
+                        content: `Thông tin gia sư của bạn đã được xác nhận thành công`,
+                        pathto: '/class'
+                    })
+                })
+
                 setTutors(() => tutors?.filter(tutor => tutor.userID != element.userID))
             }
             

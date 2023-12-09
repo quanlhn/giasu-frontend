@@ -32,10 +32,10 @@ export default function Home() {
   const [tags, setTags] = useState('all')
   const [tutors, setTutors] = useState<Array<TutorType>>()
   const [tutorsSubjects, setTutorsSubjects] = useState<Array<Array<any>>>([])
-  const handleChange = (event: React.MouseEvent<HTMLElement>, value: string) => {
-    setTags(value)
+  // const handleChange = (event: React.MouseEvent<HTMLElement>, value: string) => {
+  //   setTags(value)
     
-  }
+  // }
 
   const defaultTutor = {
     userID: 0,
@@ -157,7 +157,7 @@ export default function Home() {
       <div className='px-12 mt-14'>
         <div className='flex flex-col justify-center items-center'>
           <div className='text-5xl text-apple font-bold mb-10'>Gia sư của trung tâm</div>
-          <ToggleButtonGroup
+          {/* <ToggleButtonGroup
             value={tags}
             exclusive
             onChange={handleChange}
@@ -175,9 +175,7 @@ export default function Home() {
               <ToggleButton sx={{boxShadow:'0.5px 0.5px 5px 0.5px #d4d4d4', width: "8rem"}} color='warning' value='chemistry'>Hóa</ToggleButton>
               <ToggleButton sx={{boxShadow:'0.5px 0.5px 5px 0.5px #d4d4d4', width: "8rem"}} color='warning' value='english'>Tiếng Anh</ToggleButton>
               <ToggleButton sx={{boxShadow:'0.5px 0.5px 5px 0.5px #d4d4d4', width: "8rem"}} color='warning' value='advanced'>Nâng cao</ToggleButton>
-            {/* <div className='flex gap-10>
-            </div> */}
-          </ToggleButtonGroup>
+          </ToggleButtonGroup> */}
         </div>
         <div className="mt-10"> 
             {/* <div className="splide" >
